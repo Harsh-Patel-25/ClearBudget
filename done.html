@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Done Friends History</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0d0817;
+        color: white;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+
+      .done-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        width: 100%;
+        max-width: 600px;
+        position: relative;
+      }
+
+      .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-block;
+        margin-top: 5px;
+      }
+
+      .badge.leva {
+        background-color: rgba(0, 255, 100, 0.2);
+        color: #00ff88;
+      }
+
+      .badge.deva {
+        background-color: rgba(255, 0, 60, 0.2);
+        color: #ff4c6e;
+      }
+
+      .date {
+        font-size: 0.7rem;
+        color: #888;
+        margin-top: 5px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #6c42ff, #a233ff);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 0 10px #a233ff;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 15px;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      .action-icons {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .action-icons button {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+
+      @media (max-width: 600px) {
+        .done-card {
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      class="btn"
+      style="align-self: flex-start; margin-bottom: 15px"
+      onclick="window.location.href='friend.html'"
+    >
+      ⬅️ Back to Friends
+    </button>
+    <h1>Done Friends History</h1>
+    <div id="doneList"></div>
+    <button class="btn" onclick="deleteAllDone()">🗑️ Delete All History</button>
+
+    <script>
+      function getDateString() {
+        const date = new Date();
+        return date.toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      function loadDoneFriends() {
+        const list = JSON.parse(localStorage.getItem("doneFriends") || "[]");
+        const doneList = document.getElementById("doneList");
+        doneList.innerHTML = "";
+        list.reverse().forEach((f, index) => {
+          const div = document.createElement("div");
+          div.className = "done-card";
+          div.innerHTML = `
+          <div class="action-icons">
+            <button onclick="editFriend(${index})">✏️</button>
+            <button onclick="undoFriend(${index})">🔁</button>
+            <button onclick="deleteFriend(${index})">🗑️</button>
+          </div>
+          <strong>${f.name}</strong><br/>
+          ${f.description}<br/>
+          <span class="${f.type === "leva" ? "badge leva" : "badge deva"}">
+            ${f.type === "leva" ? "Leva na" : "Deva na"}
+          </span><br/>
+          ₹${f.amount}<br/>
+          <div class="date">Added on: ${f.date}</div>
+          <div class="date">Marked Done on: ${f.doneDate || "Unknown"}</div>
+        `;
+          doneList.appendChild(div);
+        });
+      }
+
+      function deleteAllDone() {
+        if (confirm("Delete all history?")) {
+          localStorage.removeItem("doneFriends");
+          loadDoneFriends();
+        }
+      }
+
+      function deleteFriend(index) {
+        const list = JSON.parse(localStorage.getItem("doneFriends") || "[]");
+        if (confirm(`Delete "${list[index].name}" from history?`)) {
+          list.splice(index, 1);
+          localStorage.setItem("doneFriends", JSON.stringify(list));
+          loadDoneFriends();
+        }
+      }
+
+      function undoFriend(index) {
+        const doneList = JSON.parse(
+          localStorage.getItem("doneFriends") || "[]"
+        );
+        const item = doneList.splice(index, 1)[0];
+        let mainList = JSON.parse(localStorage.getItem("friends") || "[]");
+        mainList.push(item);
+        localStorage.setItem("doneFriends", JSON.stringify(doneList));
+        localStorage.setItem("friends", JSON.stringify(mainList));
+        loadDoneFriends();
+        alert(`✅ "${item.name}" moved back to Friends list.`);
+      }
+
+      function editFriend(index) {
+        const list = JSON.parse(localStorage.getItem("doneFriends") || "[]");
+        const item = list[index];
+
+        const name = prompt("Edit name:", item.name);
+        if (name === null) return;
+        const description = prompt("Edit description:", item.description);
+        if (description === null) return;
+        const amount = prompt("Edit amount:", item.amount);
+        if (amount === null) return;
+
+        item.name = name;
+        item.description = description;
+        item.amount = amount;
+
+        list[index] = item;
+        localStorage.setItem("doneFriends", JSON.stringify(list));
+        loadDoneFriends();
+      }
+
+      window.onload = loadDoneFriends;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Transaction | ClearBudget</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: #120c1b;
+      color: white;
+      padding: 1.5rem 1rem 5rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      color: #e4d6ff;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .form-container {
+      background: #1d1329;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 0 15px rgba(168, 109, 255, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: #c9b4e9;
+      font-size: 0.9rem;
+    }
+
+    .form-group select,
+    .form-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #2a1b3d;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .form-container button {
+      margin-top: 1.5rem;
+      background: #a86dff;
+      border: none;
+      color: white;
+      padding: 0.9rem 1.2rem;
+      font-size: 1.1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1325;
+      border-top: 1px solid #2f2540;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 5px;
+      z-index: 100;
+    }
+
+    .bottom-nav a {
+      color: #a298c4;
+      text-decoration: none;
+      font-size: 0.8rem;
+      text-align: center;
+      flex: 1;
+    }
+
+    .bottom-nav a.active {
+      color: #a86dff;
+      font-weight: bold;
+    }
+
+    .bottom-nav a:hover {
+      color: #a86dff;
+    }
+
+    .bottom-nav svg {
+      display: block;
+      margin: 0 auto 2px;
+      width: 22px;
+      height: 22px;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 2rem 2rem 6rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .form-container {
+        padding: 2rem;
+      }
+
+      .form-container button {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Add New Transaction</h1>
+
+  <div class="form-container">
+    <div class="form-group">
+      <label for="type">Type</label>
+      <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="name">Transaction Name</label>
+      <input type="text" id="name" placeholder="e.g., Freelance Project" />
+    </div>
+    <div class="form-group">
+      <label for="thingType">Thing Type</label>
+      <select id="thingType">
+        <option value="Travel">Travel</option>
+        <option value="Food">Food</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Bills">Bills</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Salary">Salary</option>
+        <option value="Gifts">Gifts</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" placeholder="e.g., 500" />
+    </div>
+    <button onclick="saveTransaction()">Save Transaction</button>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
+      Home
+    </a>
+    <a href="transaction.html">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+        <path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z" /></svg>
+      Transactions
+    </a>
+    <a href="add.html" class="active">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+        <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z" /></svg>
+      Add
+    </a>
+    <a href="insight.html">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+        <path d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z" /></svg>
+      Insights
+    </a>
+    <a href="friend.html">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+        <path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z" /></svg>
+      Friends
+    </a>
+  </div>
+
+  <script>
+    const iconMap = {
+      income: "wallet",
+      expense: "money-bill-wave",
+    };
+
+    function saveTransaction() {
+      const type = document.getElementById("type").value;
+      const name = document.getElementById("name").value.trim();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const thingType = document.getElementById("thingType").value;
+
+      if (!name || isNaN(amount)) {
+        alert("Please enter valid details");
+        return;
+      }
+
+      const transaction = {
+        id: Date.now(),
+        name,
+        icon: iconMap[type],
+        category: type.charAt(0).toUpperCase() + type.slice(1),
+        thingType, // added category info
+        amount: type === "income" ? amount : -amount,
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        }),
+      };
+      id: Date.now();
+      const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+      transactions.unshift(transaction);
+      localStorage.setItem("transactions", JSON.stringify(transactions));
+      window.dispatchEvent(new Event("storage"));
+
+      alert("Transaction saved!");
+      window.location.href = "transaction.html";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#00f0ff" />
+    <link rel="apple-touch-icon" href="192.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClearBudget</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: #130c1c;
+        color: white;
+        padding: 2rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .accent {
+        color: #a86dff;
+      }
+      .subhead {
+        color: #bcb4d4;
+        margin-bottom: 2rem;
+      }
+      .cards {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .card {
+        flex: 1;
+        min-width: 200px;
+        background: #1f152b;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 0 20px rgba(156, 94, 255, 0.08);
+      }
+      .card h3 {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+        color: #cfc8e7;
+      }
+      .card p {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .card small {
+        color: #a798bc;
+      }
+      .budget-progress {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+        gap: 2rem;
+      }
+      .progress-card {
+        flex: 1;
+        min-width: 250px;
+        background: #1f152b;
+        padding: 1.5rem;
+        border-radius: 1rem;
+      }
+      .progress-ring {
+        display: block;
+        margin: 1rem auto 0;
+      }
+      .progress-ring circle {
+        fill: none;
+        stroke-width: 15;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+      .progress-ring-bg {
+        stroke: #392c4b;
+      }
+      .progress-ring-progress {
+        stroke: #a86dff;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.5s ease;
+      }
+      .progress-text {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: #ccc;
+      }
+      .muted {
+        color: #888;
+        font-size: 0.8rem;
+      }
+      .recent-transactions {
+        flex: 2;
+        background: #1f152b;
+        padding: 1.5rem;
+        border-radius: 1rem;
+      }
+      .recent-transactions h3 {
+        margin-bottom: 1rem;
+      }
+      .transaction {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid #312542;
+      }
+      .transaction:last-child {
+        border-bottom: none;
+      }
+      .transaction-info {
+        display: flex;
+        flex-direction: column;
+      }
+      .transaction-type {
+        font-size: 0.8rem;
+        color: #a198b8;
+      }
+      .transaction-amount {
+        font-weight: 600;
+      }
+      .expense {
+        color: #ff5d75;
+      }
+      .income {
+        color: #4ee1c1;
+      }
+      .view-btn {
+        margin-top: 1rem;
+        background: transparent;
+        color: #c0b4de;
+        border: 1px solid #3a2b52;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+      .view-btn i {
+        margin-right: 4px;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1a1325;
+        border-top: 1px solid #2f2540;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        z-index: 100;
+      }
+
+      .bottom-nav a {
+        color: #a298c4;
+        text-decoration: none;
+        font-size: 0.8rem;
+        text-align: center;
+      }
+
+      .bottom-nav a.active {
+        color: #a86dff;
+        font-weight: bold;
+      }
+
+      .bottom-nav a:hover {
+        color: #a86dff;
+      }
+
+      @media (max-width: 768px) {
+        .cards,
+        .budget-progress {
+          flex-direction: column;
+        }
+      }
+      #installBtn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #00f0ff;
+        font-weight: bold;
+        font-size: 15px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 0 10px #00f0ff88, 0 0 20px #00f0ff44 inset;
+        transition: all 0.3s ease;
+        z-index: 9999;
+        display: none; /* controlled by JS */
+      }
+
+      #installBtn:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff inset;
+        background: rgba(0, 240, 255, 0.12);
+      }
+    </style>
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <h1>Welcome to <span class="accent">ClearBudget</span></h1>
+    <p class="subhead">Your financial overview at a glance.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Income</h3>
+        <p id="income">0.00</p>
+        <small>This month</small>
+      </div>
+      <div class="card">
+        <h3>Total Expenses</h3>
+        <p id="expenses">0.00</p>
+        <small>This month</small>
+      </div>
+      <div class="card">
+        <h3>Balance</h3>
+        <p id="balance">0.00</p>
+        <small id="balanceStatus"></small>
+      </div>
+    </div>
+
+    <div class="budget-progress">
+      <div class="progress-card">
+        <h3>Budget Progress</h3>
+        <p class="muted">This month's spending</p>
+        <svg class="progress-ring" width="150" height="150">
+          <circle class="progress-ring-bg" r="60" cx="75" cy="75" />
+          <circle class="progress-ring-progress" r="60" cx="75" cy="75" />
+        </svg>
+        <div class="progress-text" id="progressText"></div>
+      </div>
+
+      <div class="recent-transactions">
+        <h3>Recent Transactions</h3>
+        <div id="transactionList"></div>
+        <button class="view-btn" onclick="location.href='transaction.html'">
+          <i class="fas fa-eye"></i> View All Transactions
+        </button>
+        <button class="view-btn" onclick="clearAllTransactions()">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="index.html">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="white"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path
+            d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"
+          /></svg
+        ><br />Home
+      </a>
+      <a href="transaction.html">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="white"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z" /></svg
+        ><br />Transactions
+      </a>
+      <a href="add.html">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="white"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z" /></svg
+        ><br />Add
+      </a>
+      <a href="insight.html" class="active">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="white"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path
+            d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"
+          /></svg
+        ><br />Insights
+      </a>
+      <a href="friend.html">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="white"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path
+            d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"
+          /></svg
+        ><br />Friends
+      </a>
+    </div>
+    <button id="installBtn">📲 Install App</button>
+
+    <script>
+      // Selectors
+      const incomeEl = document.getElementById("income");
+      const expensesEl = document.getElementById("expenses");
+      const balanceEl = document.getElementById("balance");
+      const balanceStatus = document.getElementById("balanceStatus");
+      const progressCircle = document.querySelector(".progress-ring-progress");
+      const progressText = document.getElementById("progressText");
+
+      // Function to recalc & update UI
+      function updateDashboard() {
+        const transactions =
+          JSON.parse(localStorage.getItem("transactions")) || [];
+        let income = 0,
+          expenses = 0;
+        for (const tx of transactions) {
+          if (tx.amount > 0) income += tx.amount;
+          else expenses += Math.abs(tx.amount);
+        }
+        const balance = income - expenses;
+        const percentUsed = income > 0 ? (expenses / income) * 100 : 0;
+        const radius = 60;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (percentUsed / 100) * circumference;
+
+        incomeEl.textContent = `₹${income.toFixed(2)}`;
+        expensesEl.textContent = `₹${expenses.toFixed(2)}`;
+        balanceEl.textContent = `₹${balance.toFixed(2)}`;
+        balanceStatus.textContent =
+          balance > 0
+            ? "You're in the green!"
+            : balance === 0
+            ? "No spending yet"
+            : "Overspent!";
+
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = offset;
+        progressText.innerHTML = `
+      <strong>${Math.round(percentUsed)}% of budget used</strong><br>
+      Spent ₹${expenses.toFixed(2)} of ₹${income.toFixed(2)}<br>
+      Remaining: ₹${balance.toFixed(2)}
+    `;
+      }
+
+      // Initial render
+      updateDashboard();
+      renderRecentTransactions(); // 🆕
+
+      function renderRecentTransactions() {
+        const transactions =
+          JSON.parse(localStorage.getItem("transactions")) || [];
+        const recentTx = [...transactions].slice(-3).reverse(); // ✅ show last 3, newest first
+        const list = document.getElementById("transactionList");
+        list.innerHTML = "";
+
+        if (recentTx.length === 0) {
+          list.innerHTML = "<p style='color:gray'>No recent transactions.</p>";
+          return;
+        }
+
+        recentTx.forEach((tx) => {
+          const div = document.createElement("div");
+          div.className = "transaction";
+
+          div.innerHTML = `
+      <div class="transaction-info">
+        <span class="transaction-type">${tx.category || "Transaction"}</span>
+        <span class="transaction-amount ${
+          tx.amount > 0 ? "income" : "expense"
+        }">
+          ${tx.amount > 0 ? "+" : "-"}₹${Math.abs(tx.amount).toFixed(2)}
+        </span>
+      </div>
+      <div>${tx.date || ""}</div>
+    `;
+          list.appendChild(div);
+        });
+      }
+
+      // 🆕 Add this to sync data across tabs/pages
+      window.addEventListener("storage", function (event) {
+        if (event.key === "transactions") {
+          updateDashboard();
+          renderRecentTransactions(); // 🆕
+        }
+      });
+      function clearAllTransactions() {
+        const confirmClear = confirm(
+          "Are you sure you want to clear all transactions?"
+        );
+        if (confirmClear) {
+          localStorage.removeItem("transactions");
+          updateDashboard();
+          renderRecentTransactions();
+          // Trigger storage event manually for same-tab sync
+          window.dispatchEvent(
+            new StorageEvent("storage", { key: "transactions" })
+          );
+        }
+      }
+      let deferredPrompt;
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        const installBtn = document.getElementById("installBtn");
+        if (installBtn) {
+          installBtn.style.display = "block";
+
+          installBtn.addEventListener("click", () => {
+            installBtn.style.display = "none";
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === "accepted") {
+                console.log("🎉 User accepted the install prompt");
+              } else {
+                console.log("❌ User dismissed the install prompt");
+              }
+              deferredPrompt = null;
+            });
+          });
+        }
+      });
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("sw.js")
+          .then(() => console.log("✅ Service Worker Registered"))
+          .catch((err) => console.error("❌ Service Worker Error:", err));
+      }
+    </script>
+  </body>
+</html> 
