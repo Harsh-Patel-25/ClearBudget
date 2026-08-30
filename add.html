@@ -4,212 +4,282 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Transaction | ClearBudget</title>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/nav.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
   <style>
-    * {
-      box-sizing: border-box;
+    .type-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 5px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.25rem;
     }
 
-    body {
-      margin: 0;
-      font-family: "Inter", sans-serif;
-      background: #120c1b;
-      color: white;
-      padding: 1.5rem 1rem 5rem;
+    .type-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: var(--transition);
     }
 
-    h1 {
-      font-size: 1.75rem;
-      color: #e4d6ff;
-      text-align: center;
-      margin-bottom: 1rem;
+    .type-btn.income.active {
+      background: var(--income-bg);
+      color: var(--income);
+      border: 1px solid rgba(78, 225, 193, 0.3);
     }
 
-    .form-container {
-      background: #1d1329;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      max-width: 600px;
-      margin: auto;
-      box-shadow: 0 0 15px rgba(168, 109, 255, 0.1);
+    .type-btn.expense.active {
+      background: var(--expense-bg);
+      color: var(--expense);
+      border: 1px solid rgba(255, 93, 117, 0.3);
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
     }
 
     .form-group label {
       display: block;
-      margin-bottom: 0.3rem;
-      color: #c9b4e9;
-      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: var(--text-sub);
+      font-size: 0.88rem;
+      font-weight: 500;
     }
 
-    .form-group select,
-    .form-group input {
-      width: 100%;
-      padding: 0.8rem;
-      border: none;
-      border-radius: 0.5rem;
-      background: #2a1b3d;
-      color: white;
-      font-size: 1rem;
-    }
-
-    .form-container button {
-      margin-top: 1.5rem;
-      background: #a86dff;
-      border: none;
-      color: white;
-      padding: 0.9rem 1.2rem;
-      font-size: 1.1rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .bottom-nav {
+    /* ── Toast Notification ────────────────────── */
+    #toast {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #1a1325;
-      border-top: 1px solid #2f2540;
+      top: 1.2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      min-width: 280px;
+      max-width: 90vw;
+      padding: 0.9rem 1.4rem;
+      border-radius: 0.9rem;
       display: flex;
-      justify-content: space-around;
-      padding: 10px 0 5px;
-      z-index: 100;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+      pointer-events: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
     }
 
-    .bottom-nav a {
-      color: #a298c4;
-      text-decoration: none;
-      font-size: 0.8rem;
-      text-align: center;
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success {
+      background: rgba(22, 163, 74, 0.92);
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      color: #dcfce7;
+    }
+
+    #toast.error {
+      background: rgba(185, 28, 28, 0.92);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      color: #fee2e2;
+    }
+
+    #toast .toast-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    #toast .toast-msg {
       flex: 1;
     }
 
-    .bottom-nav a.active {
-      color: #a86dff;
-      font-weight: bold;
-    }
-
-    .bottom-nav a:hover {
-      color: #a86dff;
-    }
-
-    .bottom-nav svg {
-      display: block;
-      margin: 0 auto 2px;
-      width: 22px;
-      height: 22px;
-    }
-
-    @media (min-width: 768px) {
-      body {
-        padding: 2rem 2rem 6rem;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      .form-container {
-        padding: 2rem;
-      }
-
-      .form-container button {
-        font-size: 1.1rem;
-      }
+    #toast .toast-close {
+      cursor: pointer;
+      opacity: 0.7;
+      font-size: 1.1rem;
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 0;
+      pointer-events: all;
     }
   </style>
 </head>
-<body>
-  <h1>Add New Transaction</h1>
+<body style="padding: 1.8rem 1.2rem 85px;">
+  <!-- Toast Notification -->
+  <div id="toast" role="alert">
+    <span class="toast-icon" id="toastIcon"><i class="fas fa-check-circle"></i></span>
+    <span class="toast-msg" id="toastMsg">Transaction saved!</span>
+    <button class="toast-close" onclick="hideToast()" aria-label="Close"><i class="fas fa-times"></i></button>
+  </div>
 
-  <div class="form-container">
-    <div class="form-group">
-      <label for="type">Type</label>
-      <select id="type">
-        <option value="income">Income</option>
-        <option value="expense">Expense</option>
-      </select>
+  <div style="max-width: 550px; margin: 0 auto;" class="fade-in">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <h1>Add <span class="text-gradient">Transaction</span></h1>
+      <p class="subhead">Record your income or expenses</p>
     </div>
-    <div class="form-group">
-      <label for="name">Transaction Name</label>
-      <input type="text" id="name" placeholder="e.g., Freelance Project" />
+
+    <div class="card-glass">
+      <input type="hidden" id="type" value="expense" />
+      <div class="type-toggle">
+        <button type="button" class="type-btn expense active" id="btnExpense" onclick="setType('expense')">
+          <i class="fas fa-arrow-down"></i> Expense
+        </button>
+        <button type="button" class="type-btn income" id="btnIncome" onclick="setType('income')">
+          <i class="fas fa-arrow-up"></i> Income
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="name"><i class="fas fa-tag" style="margin-right:4px;"></i> Transaction Name</label>
+        <input type="text" id="name" placeholder="e.g., Freelance Work, Grocery Store" />
+      </div>
+
+      <div class="form-group">
+        <label for="thingType"><i class="fas fa-layer-group" style="margin-right:4px;"></i> Category / Type</label>
+        <select id="thingType">
+          <option value="Food">Food & Dining</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Travel">Travel & Transit</option>
+          <option value="Bills">Bills & Utilities</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Salary">Salary / Income</option>
+          <option value="Gifts">Gifts & Grants</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="amount"><i class="fas fa-rupee-sign" style="margin-right:4px;"></i> Amount (₹)</label>
+        <input type="number" id="amount" placeholder="e.g., 500" min="0" step="any" />
+      </div>
+
+      <button class="btn-primary" id="saveBtn" style="width:100%; margin-top:1.5rem;" onclick="saveTransaction()">
+        <i class="fas fa-save"></i> Save Transaction
+      </button>
     </div>
-    <div class="form-group">
-      <label for="thingType">Thing Type</label>
-      <select id="thingType">
-        <option value="Travel">Travel</option>
-        <option value="Food">Food</option>
-        <option value="Shopping">Shopping</option>
-        <option value="Bills">Bills</option>
-        <option value="Entertainment">Entertainment</option>
-        <option value="Salary">Salary</option>
-        <option value="Gifts">Gifts</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="amount">Amount</label>
-      <input type="number" id="amount" placeholder="e.g., 500" />
-    </div>
-    <button onclick="saveTransaction()">Save Transaction</button>
   </div>
 
   <div class="bottom-nav">
     <a href="index.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
       Home
     </a>
     <a href="transaction.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-        <path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z"/></svg>
       Transactions
     </a>
     <a href="add.html" class="active">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-        <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"/></svg>
       Add
     </a>
     <a href="insight.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-        <path d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"/></svg>
       Insights
     </a>
     <a href="friend.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-        <path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"/></svg>
       Friends
     </a>
   </div>
 
+  <script src="js/api.js"></script>
   <script>
+    function setType(selectedType) {
+      document.getElementById("type").value = selectedType;
+      const btnExpense = document.getElementById("btnExpense");
+      const btnIncome = document.getElementById("btnIncome");
+      
+      if (selectedType === "income") {
+        btnIncome.classList.add("active");
+        btnExpense.classList.remove("active");
+      } else {
+        btnExpense.classList.add("active");
+        btnIncome.classList.remove("active");
+      }
+    }
+
     const iconMap = {
       income: "wallet",
       expense: "money-bill-wave",
     };
 
-    function saveTransaction() {
+    let toastTimer = null;
+
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toastMsg");
+      const toastIcon = document.getElementById("toastIcon");
+
+      // Reset classes
+      toast.classList.remove("success", "error", "show");
+
+      toastMsg.textContent = message;
+      toastIcon.innerHTML = type === "success"
+        ? '<i class="fas fa-check-circle"></i>'
+        : '<i class="fas fa-exclamation-circle"></i>';
+      toast.classList.add(type);
+
+      // Trigger reflow so transition runs fresh
+      void toast.offsetWidth;
+      toast.classList.add("show");
+
+      // Clear any existing timer
+      if (toastTimer) clearTimeout(toastTimer);
+
+      // Auto hide after 3s (unless error)
+      if (type === "success") {
+        toastTimer = setTimeout(hideToast, 3000);
+      } else {
+        toastTimer = setTimeout(hideToast, 4000);
+      }
+    }
+
+    function hideToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.remove("show");
+    }
+
+    async function saveTransaction() {
       const type = document.getElementById("type").value;
       const name = document.getElementById("name").value.trim();
       const amount = parseFloat(document.getElementById("amount").value);
       const thingType = document.getElementById("thingType").value;
+      const saveBtn = document.getElementById("saveBtn");
 
-      if (!name || isNaN(amount)) {
-        alert("Please enter valid details");
+      if (!name) {
+        showToast("Please enter a transaction name.", "error");
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        showToast("Please enter a valid amount greater than 0.", "error");
         return;
       }
 
+      // Disable button during save
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
       const transaction = {
-        id: Date.now(),
         name,
         icon: iconMap[type],
         category: type.charAt(0).toUpperCase() + type.slice(1),
-        thingType, // added category info
+        thingType,
         amount: type === "income" ? amount : -amount,
         date: new Date().toLocaleDateString("en-US", {
           year: "numeric",
@@ -217,15 +287,24 @@
           day: "2-digit",
         }),
       };
-      id: Date.now();
-      const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-      transactions.unshift(transaction);
-      localStorage.setItem("transactions", JSON.stringify(transactions));
-      window.dispatchEvent(new Event("storage"));
 
-      alert("Transaction saved!");
-      window.location.href = "transaction.html";
+      try {
+        await API.addTransaction(transaction);
+        window.dispatchEvent(new Event("storage"));
+
+        showToast("Transaction saved successfully!", "success");
+
+        // Redirect after a short delay so user sees the toast
+        setTimeout(() => {
+          window.location.href = "transaction.html";
+        }, 1500);
+      } catch (err) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Transaction';
+        showToast("Failed to save transaction. Please try again.", "error");
+      }
     }
   </script>
 </body>
 </html>
+

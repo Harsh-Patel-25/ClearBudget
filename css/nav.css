@@ -1,0 +1,83 @@
+/* ========================================
+   ClearBudget - Shared Bottom Navigation
+   ======================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(20, 14, 32, 0.97);
+  border-top: 1px solid #2f2540;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 0 10px;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -4px 20px rgba(168, 109, 255, 0.08);
+}
+
+.bottom-nav a {
+  color: #6a5d8a;
+  text-decoration: none;
+  font-size: 0.65rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 4px 0;
+  position: relative;
+  transition: color 0.25s ease, transform 0.2s ease;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+.bottom-nav a svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  transition: fill 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  fill: #6a5d8a;
+}
+
+/* Default (inactive) hover */
+.bottom-nav a:hover {
+  color: #a98dcc;
+}
+.bottom-nav a:hover svg {
+  fill: #a98dcc;
+}
+
+/* Active state */
+.bottom-nav a.active {
+  color: #a86dff;
+  font-weight: 700;
+}
+
+.bottom-nav a.active svg {
+  fill: #a86dff;
+  filter: drop-shadow(0 0 6px rgba(168, 109, 255, 0.7));
+  transform: scale(1.2) translateY(-2px);
+}
+
+/* Active pill / indicator dot */
+.bottom-nav a.active::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 3px;
+  background: #a86dff;
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(168, 109, 255, 0.6);
+}
+
+/* Ensure body has bottom padding so content doesn't get hidden */
+body {
+  padding-bottom: 72px;
+}

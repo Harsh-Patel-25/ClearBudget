@@ -3,454 +3,412 @@
   <head>
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#00f0ff" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="apple-touch-icon" href="192.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClearBudget</title>
+    <title>ClearBudget - Dashboard</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-        background: #130c1c;
-        color: white;
-        padding: 2rem;
-      }
-      h1 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-      .accent {
-        color: #a86dff;
-      }
-      .subhead {
-        color: #bcb4d4;
-        margin-bottom: 2rem;
-      }
-      .cards {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .card {
-        flex: 1;
-        min-width: 200px;
-        background: #1f152b;
-        padding: 1.5rem;
-        border-radius: 1rem;
-        box-shadow: 0 0 20px rgba(156, 94, 255, 0.08);
-      }
-      .card h3 {
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
-        color: #cfc8e7;
-      }
-      .card p {
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-      .card small {
-        color: #a798bc;
-      }
-      .budget-progress {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 2rem;
-        gap: 2rem;
-      }
-      .progress-card {
-        flex: 1;
-        min-width: 250px;
-        background: #1f152b;
-        padding: 1.5rem;
-        border-radius: 1rem;
-      }
-      .progress-ring {
-        display: block;
-        margin: 1rem auto 0;
-      }
-      .progress-ring circle {
-        fill: none;
-        stroke-width: 15;
-        transform: rotate(-90deg);
-        transform-origin: 50% 50%;
-      }
-      .progress-ring-bg {
-        stroke: #392c4b;
-      }
-      .progress-ring-progress {
-        stroke: #a86dff;
-        stroke-linecap: round;
-        transition: stroke-dashoffset 0.5s ease;
-      }
-      .progress-text {
-        text-align: center;
-        margin-top: 1rem;
-        font-size: 0.85rem;
-        color: #ccc;
-      }
-      .muted {
-        color: #888;
-        font-size: 0.8rem;
-      }
-      .recent-transactions {
-        flex: 2;
-        background: #1f152b;
-        padding: 1.5rem;
-        border-radius: 1rem;
-      }
-      .recent-transactions h3 {
-        margin-bottom: 1rem;
-      }
-      .transaction {
+      .app-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.7rem 0;
-        border-bottom: 1px solid #312542;
+        margin-bottom: 2rem;
       }
-      .transaction:last-child {
-        border-bottom: none;
+      
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
       }
-      .transaction-info {
+      
+      .card-stat {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+      }
+      
+      .stat-details {
         display: flex;
         flex-direction: column;
       }
-      .transaction-type {
-        font-size: 0.8rem;
-        color: #a198b8;
+      
+      .stat-details h3 {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
-      .transaction-amount {
-        font-weight: 600;
+      
+      .stat-details p {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0.2rem 0;
       }
-      .expense {
-        color: #ff5d75;
+      
+      .stat-details small {
+        font-size: 0.78rem;
+        color: var(--text-muted);
       }
-      .income {
-        color: #4ee1c1;
-      }
-      .view-btn {
-        margin-top: 1rem;
-        background: transparent;
-        color: #c0b4de;
-        border: 1px solid #3a2b52;
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-      }
-      .view-btn i {
-        margin-right: 4px;
+      
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 1.5rem;
       }
 
-      .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #1a1325;
-        border-top: 1px solid #2f2540;
+      @media (max-width: 868px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .progress-container {
+        position: relative;
         display: flex;
-        justify-content: space-around;
-        padding: 10px 0;
-        z-index: 100;
+        justify-content: center;
+        align-items: center;
+        margin: 1.5rem 0 1rem;
       }
 
-      .bottom-nav a {
-        color: #a298c4;
-        text-decoration: none;
-        font-size: 0.8rem;
+      .progress-ring circle {
+        fill: none;
+        stroke-width: 12;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+
+      .progress-ring-bg {
+        stroke: rgba(255, 255, 255, 0.06);
+      }
+
+      .progress-ring-progress {
+        stroke: var(--primary);
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.6s ease;
+      }
+
+      .progress-inner-text {
+        position: absolute;
         text-align: center;
       }
 
-      .bottom-nav a.active {
-        color: #a86dff;
-        font-weight: bold;
+      .progress-inner-text .percent {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-main);
       }
 
-      .bottom-nav a:hover {
-        color: #a86dff;
+      .progress-inner-text .label {
+        font-size: 0.75rem;
+        color: var(--text-sub);
       }
 
-      @media (max-width: 768px) {
-        .cards,
-        .budget-progress {
-          flex-direction: column;
-        }
+      .recent-transactions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
       }
+
+      .recent-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.2rem;
+      }
+
+      .tx-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .tx-row:last-child {
+        border-bottom: none;
+      }
+
+      .tx-left {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+      }
+
+      .tx-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .tx-date {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .tx-amount {
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
       #installBtn {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(168, 109, 255, 0.15);
+        border: 1px solid var(--primary);
         backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        color: #00f0ff;
-        font-weight: bold;
-        font-size: 15px;
-        padding: 10px 18px;
-        border-radius: 10px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
         cursor: pointer;
-        box-shadow: 0 0 10px #00f0ff88, 0 0 20px #00f0ff44 inset;
-        transition: all 0.3s ease;
-        z-index: 9999;
-        display: none; /* controlled by JS */
+        box-shadow: 0 0 15px rgba(168, 109, 255, 0.3);
+        transition: var(--transition);
+        z-index: 999;
+        display: none;
       }
 
       #installBtn:hover {
-        transform: scale(1.08);
-        box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff inset;
-        background: rgba(0, 240, 255, 0.12);
+        transform: scale(1.05);
+        background: var(--primary);
       }
     </style>
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
   </head>
-  <body>
-    <h1>Welcome to <span class="accent">ClearBudget</span></h1>
-    <p class="subhead">Your financial overview at a glance.</p>
+  <body style="padding: 1.8rem 1.2rem 85px;">
+    <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
+      <header class="app-header">
+        <div>
+          <h1>Welcome to <span class="text-gradient">ClearBudget</span></h1>
+          <p class="subhead">Your financial overview at a glance</p>
+        </div>
+      </header>
 
-    <div class="cards">
-      <div class="card">
-        <h3>Total Income</h3>
-        <p id="income">0.00</p>
-        <small>This month</small>
-      </div>
-      <div class="card">
-        <h3>Total Expenses</h3>
-        <p id="expenses">0.00</p>
-        <small>This month</small>
-      </div>
-      <div class="card">
-        <h3>Balance</h3>
-        <p id="balance">0.00</p>
-        <small id="balanceStatus"></small>
-      </div>
-    </div>
+      <div class="cards">
+        <div class="card-glass card-stat">
+          <div class="icon-avatar income">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div class="stat-details">
+            <h3>Total Income</h3>
+            <p id="income" class="income">₹0.00</p>
+            <small>This month</small>
+          </div>
+        </div>
 
-    <div class="budget-progress">
-      <div class="progress-card">
-        <h3>Budget Progress</h3>
-        <p class="muted">This month's spending</p>
-        <svg class="progress-ring" width="150" height="150">
-          <circle class="progress-ring-bg" r="60" cx="75" cy="75" />
-          <circle class="progress-ring-progress" r="60" cx="75" cy="75" />
-        </svg>
-        <div class="progress-text" id="progressText"></div>
+        <div class="card-glass card-stat">
+          <div class="icon-avatar expense">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div class="stat-details">
+            <h3>Total Expenses</h3>
+            <p id="expenses" class="expense">₹0.00</p>
+            <small>This month</small>
+          </div>
+        </div>
+
+        <div class="card-glass card-stat">
+          <div class="icon-avatar purple">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+          <div class="stat-details">
+            <h3>Net Balance</h3>
+            <p id="balance">₹0.00</p>
+            <small id="balanceStatus" class="accent">Calculated balance</small>
+          </div>
+        </div>
       </div>
 
-      <div class="recent-transactions">
-        <h3>Recent Transactions</h3>
-        <div id="transactionList"></div>
-        <button class="view-btn" onclick="location.href='transaction.html'">
-          <i class="fas fa-eye"></i> View All Transactions
-        </button>
-        <button class="view-btn" onclick="clearAllTransactions()">
-          <i class="fas fa-trash"></i> Clear All
-        </button>
+      <div class="dashboard-grid">
+        <div class="card-glass">
+          <h3>Budget Overview</h3>
+          <p class="subhead" style="font-size:0.82rem; margin-top:0.2rem;">Monthly spending limit</p>
+          
+          <div class="progress-container">
+            <svg class="progress-ring" width="160" height="160">
+              <circle class="progress-ring-bg" r="65" cx="80" cy="80" />
+              <circle class="progress-ring-progress" r="65" cx="80" cy="80" />
+            </svg>
+            <div class="progress-inner-text">
+              <div class="percent" id="percentVal">0%</div>
+              <div class="label">used</div>
+            </div>
+          </div>
+          <div class="progress-text" id="progressText" style="text-align:center; font-size:0.88rem; color:var(--text-sub);"></div>
+        </div>
+
+        <div class="card-glass">
+          <div class="recent-transactions-header">
+            <h3>Recent Activity</h3>
+            <a href="transaction.html" class="accent" style="font-size:0.85rem; text-decoration:none; font-weight:600;">View all →</a>
+          </div>
+          <div id="transactionList" style="min-height: 180px;"></div>
+          <div class="recent-actions">
+            <a href="add.html" class="btn-primary" style="flex:1;">
+              <i class="fas fa-plus"></i> Add Transaction
+            </a>
+            <button class="btn-secondary" onclick="clearAllTransactions()" title="Clear all history">
+              <i class="fas fa-trash-alt"></i> Clear
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="bottom-nav">
-      <a href="index.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path
-            d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"
-          /></svg
-        ><br />Home
+      <a href="index.html" class="active">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
+        Home
       </a>
       <a href="transaction.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z" /></svg
-        ><br />Transactions
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z"/></svg>
+        Transactions
       </a>
       <a href="add.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z" /></svg
-        ><br />Add
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"/></svg>
+        Add
       </a>
-      <a href="insight.html" class="active">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path
-            d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"
-          /></svg
-        ><br />Insights
+      <a href="insight.html">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"/></svg>
+        Insights
       </a>
       <a href="friend.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path
-            d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"
-          /></svg
-        ><br />Friends
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"/></svg>
+        Friends
       </a>
     </div>
-    <button id="installBtn">📲 Install App</button>
+    <button id="installBtn"><i class="fas fa-download"></i> Install App</button>
 
+    <script src="js/api.js"></script>
     <script>
-      // Selectors
       const incomeEl = document.getElementById("income");
       const expensesEl = document.getElementById("expenses");
       const balanceEl = document.getElementById("balance");
       const balanceStatus = document.getElementById("balanceStatus");
       const progressCircle = document.querySelector(".progress-ring-progress");
       const progressText = document.getElementById("progressText");
+      const percentValEl = document.getElementById("percentVal");
 
-      // Function to recalc & update UI
-      function updateDashboard() {
-        const transactions =
-          JSON.parse(localStorage.getItem("transactions")) || [];
-        let income = 0,
-          expenses = 0;
+      async function updateDashboard() {
+        const transactions = await API.getTransactions();
+        let income = 0, expenses = 0;
         for (const tx of transactions) {
           if (tx.amount > 0) income += tx.amount;
           else expenses += Math.abs(tx.amount);
         }
         const balance = income - expenses;
-        const percentUsed = income > 0 ? (expenses / income) * 100 : 0;
-        const radius = 60;
+        const percentUsed = income > 0 ? Math.min(100, (expenses / income) * 100) : (expenses > 0 ? 100 : 0);
+        const radius = 65;
         const circumference = 2 * Math.PI * radius;
         const offset = circumference - (percentUsed / 100) * circumference;
 
-        incomeEl.textContent = `₹${income.toFixed(2)}`;
-        expensesEl.textContent = `₹${expenses.toFixed(2)}`;
-        balanceEl.textContent = `₹${balance.toFixed(2)}`;
-        balanceStatus.textContent =
-          balance > 0
-            ? "You're in the green!"
-            : balance === 0
-            ? "No spending yet"
-            : "Overspent!";
+        incomeEl.textContent = `₹${income.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        expensesEl.textContent = `₹${expenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        balanceEl.textContent = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        
+        if (balance > 0) {
+          balanceStatus.textContent = "Positive Balance";
+          balanceStatus.style.color = "var(--income)";
+        } else if (balance === 0) {
+          balanceStatus.textContent = "Balanced Budget";
+          balanceStatus.style.color = "var(--text-sub)";
+        } else {
+          balanceStatus.textContent = "Overspent!";
+          balanceStatus.style.color = "var(--expense)";
+        }
 
-        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-        progressCircle.style.strokeDashoffset = offset;
-        progressText.innerHTML = `
-      <strong>${Math.round(percentUsed)}% of budget used</strong><br>
-      Spent ₹${expenses.toFixed(2)} of ₹${income.toFixed(2)}<br>
-      Remaining: ₹${balance.toFixed(2)}
-    `;
+        if (progressCircle) {
+          progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+          progressCircle.style.strokeDashoffset = offset;
+          progressCircle.style.stroke = percentUsed > 90 ? 'var(--expense)' : 'var(--primary)';
+        }
+        
+        if (percentValEl) {
+          percentValEl.textContent = `${Math.round(percentUsed)}%`;
+        }
+
+        if (progressText) {
+          progressText.innerHTML = `
+            <strong>₹${expenses.toFixed(2)}</strong> spent of ₹${income.toFixed(2)}<br>
+            <span style="font-size:0.8rem; opacity:0.8;">Remaining: ₹${balance.toFixed(2)}</span>
+          `;
+        }
       }
 
-      // Initial render
-      updateDashboard();
-      renderRecentTransactions(); // 🆕
-
-      function renderRecentTransactions() {
-        const transactions =
-          JSON.parse(localStorage.getItem("transactions")) || [];
-        const recentTx = [...transactions].slice(-3).reverse(); // ✅ show last 3, newest first
+      async function renderRecentTransactions() {
+        const transactions = await API.getTransactions();
+        const recentTx = [...transactions].slice(0, 4);
         const list = document.getElementById("transactionList");
         list.innerHTML = "";
 
         if (recentTx.length === 0) {
-          list.innerHTML = "<p style='color:gray'>No recent transactions.</p>";
+          list.innerHTML = "<div style='color:var(--text-muted); text-align:center; padding:2.5rem 0;'>No transactions yet. Click 'Add Transaction' to begin!</div>";
           return;
         }
 
         recentTx.forEach((tx) => {
           const div = document.createElement("div");
-          div.className = "transaction";
+          div.className = "tx-row";
+          const isIncome = tx.amount >= 0;
+          const iconName = tx.icon || (isIncome ? 'arrow-up' : 'arrow-down');
 
           div.innerHTML = `
-      <div class="transaction-info">
-        <span class="transaction-type">${tx.category || "Transaction"}</span>
-        <span class="transaction-amount ${
-          tx.amount > 0 ? "income" : "expense"
-        }">
-          ${tx.amount > 0 ? "+" : "-"}₹${Math.abs(tx.amount).toFixed(2)}
-        </span>
-      </div>
-      <div>${tx.date || ""}</div>
-    `;
+            <div class="tx-left">
+              <div class="icon-avatar ${isIncome ? 'income' : 'expense'}" style="width:38px; height:38px; font-size:0.9rem;">
+                <i class="fas fa-${iconName}"></i>
+              </div>
+              <div>
+                <div class="tx-title">${tx.name || tx.category || 'Transaction'}</div>
+                <div class="tx-date">${tx.thingType || tx.category || ''} • ${tx.date || ''}</div>
+              </div>
+            </div>
+            <div class="tx-amount ${isIncome ? 'income' : 'expense'}">
+              ${isIncome ? '+' : '-'}₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+            </div>
+          `;
           list.appendChild(div);
         });
       }
 
-      // 🆕 Add this to sync data across tabs/pages
+      updateDashboard();
+      renderRecentTransactions();
+
       window.addEventListener("storage", function (event) {
         if (event.key === "transactions") {
           updateDashboard();
-          renderRecentTransactions(); // 🆕
+          renderRecentTransactions();
         }
       });
-      function clearAllTransactions() {
-        const confirmClear = confirm(
-          "Are you sure you want to clear all transactions?"
-        );
-        if (confirmClear) {
-          localStorage.removeItem("transactions");
+
+      async function clearAllTransactions() {
+        if (confirm("Are you sure you want to clear all transactions?")) {
+          await API.clearAllTransactions();
           updateDashboard();
           renderRecentTransactions();
-          // Trigger storage event manually for same-tab sync
-          window.dispatchEvent(
-            new StorageEvent("storage", { key: "transactions" })
-          );
         }
       }
-      let deferredPrompt;
 
+      let deferredPrompt;
       window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
-
         const installBtn = document.getElementById("installBtn");
         if (installBtn) {
           installBtn.style.display = "block";
-
           installBtn.addEventListener("click", () => {
             installBtn.style.display = "none";
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-              if (choiceResult.outcome === "accepted") {
-                console.log("🎉 User accepted the install prompt");
-              } else {
-                console.log("❌ User dismissed the install prompt");
-              }
-              deferredPrompt = null;
-            });
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
           });
         }
       });
+
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("sw.js")
-          .then(() => console.log("✅ Service Worker Registered"))
-          .catch((err) => console.error("❌ Service Worker Error:", err));
+        navigator.serviceWorker.register("sw.js").catch(() => {});
       }
     </script>
   </body>

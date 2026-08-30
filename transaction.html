@@ -3,387 +3,215 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transactions | ClearBudget</title>
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
+    <title>Transactions - ClearBudget</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      body {
-        margin: 0;
-        font-family: "Inter", sans-serif;
-        background: #120c1b;
-        color: white;
-        padding: 2rem 1rem 6rem;
-      }
-
-      h1 {
-        font-size: 2rem;
-        color: #e4d6ff;
-        margin-bottom: 0.2rem;
-      }
-
-      .subhead {
-        color: #bca9e8;
-        margin-bottom: 1.2rem;
-      }
-
-      .top-bar {
+      .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 1.5rem;
         flex-wrap: wrap;
-        margin-bottom: 1rem;
+        gap: 1rem;
       }
 
       .filters {
         display: flex;
-        gap: 0.6rem;
-        flex-wrap: wrap;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 4px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
       }
 
       .filters button {
-        background: #2a1b3d;
+        background: transparent;
         border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
+        color: var(--text-sub);
+        padding: 0.5rem 1.1rem;
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: 0.2s;
+        font-weight: 500;
+        font-size: 0.88rem;
+        transition: var(--transition);
       }
 
       .filters button.active {
-        background: #a86dff;
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(168, 109, 255, 0.35);
       }
 
-      .main-content {
-        display: flex;
-        flex-direction: column;
+      .main-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
         gap: 1.5rem;
       }
 
-      @media (min-width: 768px) {
-        .main-content {
-          flex-direction: row;
-          align-items: flex-start;
+      @media (max-width: 768px) {
+        .main-grid {
+          grid-template-columns: 1fr;
         }
       }
 
       #chartContainer {
-        background: #1d1329;
-        padding: 1rem;
-        border-radius: 1rem;
-        max-width: 250px;
-        width: 100%;
-        margin: 0 auto;
-        box-shadow: 0 0 15px rgba(168, 109, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
       }
 
-      .transaction-list {
-        background: #1d1329;
-        border-radius: 1rem;
-        flex: 1;
-        padding: 1rem;
-        box-shadow: 0 0 20px rgba(168, 109, 255, 0.1);
-        overflow-y: auto;
-        max-height: 500px;
-      }
-
-      .transaction-item {
+      .tx-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem;
-        border-bottom: 1px solid #2d213e;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: var(--transition);
       }
 
-      .transaction-item:last-child {
+      .tx-item:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .tx-item:last-child {
         border-bottom: none;
       }
 
-      .left {
+      .tx-actions {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.5rem;
       }
 
-      .icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
+      .btn-icon {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-sub);
+        border: 1px solid var(--border-color);
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #291b3d;
-        font-size: 1.2rem;
+        font-size: 0.85rem;
+        transition: var(--transition);
       }
 
-      .details {
-        display: flex;
-        flex-direction: column;
+      .btn-icon:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
       }
 
-      .details strong {
-        font-size: 1rem;
-      }
-
-      .details small {
-        color: #9b8cb8;
-        font-size: 0.75rem;
-      }
-
-      .amount {
-        font-weight: 600;
-        font-size: 1rem;
-      }
-
-      .expense {
-        color: #ff5d75;
-      }
-
-      .income {
-        color: #4ee1c1;
-      }
-
-      .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #1a1325;
-        border-top: 1px solid #2f2540;
-        display: flex;
-        justify-content: space-around;
-        padding: 10px 0;
-        z-index: 100;
-      }
-
-      .bottom-nav a {
-        color: #a298c4;
-        text-decoration: none;
-        font-size: 0.8rem;
-        text-align: center;
-      }
-
-      .bottom-nav a.active {
-        color: #a86dff;
-        font-weight: bold;
-      }
-
-      .bottom-nav a:hover {
-        color: #a86dff;
-      }
-
-      .bottom-nav svg {
-        display: block;
-        margin: 0 auto 2px;
-        width: 22px;
-        height: 22px;
+      .btn-icon.delete:hover {
+        background: var(--expense);
+        border-color: var(--expense);
       }
     </style>
   </head>
-  <body>
-    <h1>Transaction History</h1>
-    <p class="subhead">Track your income and expenses</p>
-
-    <div class="top-bar">
-      <div class="filters">
-        <button class="active" onclick="setFilter('all')">All</button>
-        <button onclick="setFilter('income')">Income</button>
-        <button onclick="setFilter('expense')">Expense</button>
+  <body style="padding: 1.8rem 1.2rem 85px;">
+    <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
+      <div class="page-header">
+        <div>
+          <h1>Transaction <span class="text-gradient">History</span></h1>
+          <p class="subhead">Track, filter, and edit your finances</p>
+        </div>
+        <div class="filters">
+          <button class="active" onclick="setFilter('all', this)">All</button>
+          <button onclick="setFilter('income', this)">Income</button>
+          <button onclick="setFilter('expense', this)">Expense</button>
+        </div>
       </div>
-    </div>
 
-    <div class="main-content">
-      <div id="chartContainer">
-        <canvas id="chart"></canvas>
+      <div class="main-grid">
+        <div class="card-glass" id="chartContainer">
+          <h3 style="font-size:0.95rem; margin-bottom:1rem; color:var(--text-sub);">Breakdown</h3>
+          <div style="position: relative; width: 100%; height: 180px;">
+            <canvas id="chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card-glass" style="padding: 0; overflow:hidden;">
+          <div id="transactionList" style="max-height: 550px; overflow-y: auto;"></div>
+        </div>
       </div>
-      <div class="transaction-list" id="transactionList"></div>
-      <div
-        id="editFormContainer"
-        style="
-          display: none;
-          margin-top: 2rem;
-          background: #1d1329;
-          padding: 1rem;
-          border-radius: 1rem;
-        "
-      >
-        <h2 style="margin-bottom: 1rem">Edit Transaction</h2>
-        <form id="editForm">
+
+      <div id="editFormContainer" class="card-glass" style="display: none; margin-top: 1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Edit Transaction</h3>
+          <button class="btn-icon" onclick="hideEditForm()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="editForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; align-items:end;">
           <input type="hidden" id="editId" />
-          <div style="margin-bottom: 1rem">
-            <label>Name:</label><br />
-            <input
-              type="text"
-              id="editName"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border-radius: 0.5rem;
-                border: none;
-                background: #2a1b3d;
-                color: white;
-              "
-              required
-            />
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Name</label>
+            <input type="text" id="editName" required />
           </div>
-          <div style="margin-bottom: 1rem">
-            <label>Category:</label><br />
-            <select
-              id="editCategory"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border-radius: 0.5rem;
-                border: none;
-                background: #2a1b3d;
-                color: white;
-              "
-              required
-            >
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Category / Type</label>
+            <input type="text" id="editCategory" required />
           </div>
-
-          <div style="margin-bottom: 1rem">
-            <label>Amount (use - for expense):</label><br />
-            <input
-              type="number"
-              id="editAmount"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border-radius: 0.5rem;
-                border: none;
-                background: #2a1b3d;
-                color: white;
-              "
-              required
-            />
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Amount (₹)</label>
+            <input type="number" id="editAmount" step="any" required />
           </div>
-          <div style="margin-bottom: 1rem">
-            <label>Date:</label><br />
-            <input
-              type="date"
-              id="editDate"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border-radius: 0.5rem;
-                border: none;
-                background: #2a1b3d;
-                color: white;
-              "
-              required
-            />
+          <div style="display:flex; gap:0.5rem;">
+            <button type="submit" class="btn-primary" style="flex:1;">Save</button>
+            <button type="button" class="btn-secondary" onclick="hideEditForm()">Cancel</button>
           </div>
-          <button
-            type="submit"
-            style="
-              padding: 0.5rem 1rem;
-              background: #a86dff;
-              color: white;
-              border: none;
-              border-radius: 0.5rem;
-              cursor: pointer;
-            "
-          >
-            Save Changes
-          </button>
-          <button
-            type="button"
-            onclick="cancelEdit()"
-            style="
-              margin-left: 1rem;
-              padding: 0.5rem 1rem;
-              background: #3a2c4d;
-              color: white;
-              border: none;
-              border-radius: 0.5rem;
-              cursor: pointer;
-            "
-          >
-            Cancel
-          </button>
         </form>
       </div>
     </div>
 
     <div class="bottom-nav">
       <a href="index.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
         Home
       </a>
-      <a href="transaction.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z" />
-        </svg>
+      <a href="transaction.html" class="active">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4 6h16v2H4zm0 5h10v2H4zm0 5h16v2H4z"/></svg>
         Transactions
       </a>
-      <a href="add.html" class="active">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z" />
-        </svg>
+      <a href="add.html">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"/></svg>
         Add
       </a>
       <a href="insight.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3 3v18h18v-2H5V3H3zm14 8h-2v5h2v-5zm-4-4h-2v9h2V7zm-4 6H7v3h2v-3z"/></svg>
         Insights
       </a>
       <a href="friend.html">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.39 13.75 17 14.87 17 16.5V19h5v-2.5c0-2.33-4.67-3.5-6-3.5z"/></svg>
         Friends
       </a>
     </div>
 
+    <script src="js/api.js"></script>
     <script>
       const transactionList = document.getElementById("transactionList");
       const chartCtx = document.getElementById("chart").getContext("2d");
-      let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+      let transactions = [];
       let filterType = "all";
       let chart;
 
-      function setFilter(type) {
+      function setFilter(type, btnElement) {
         filterType = type;
-        document
-          .querySelectorAll(".filters button")
-          .forEach((btn) => btn.classList.remove("active"));
-        event.target.classList.add("active");
+        document.querySelectorAll(".filters button").forEach((btn) => btn.classList.remove("active"));
+        if (btnElement) {
+          btnElement.classList.add("active");
+        }
+        renderTransactions();
+      }
+
+      async function fetchAndRender() {
+        transactions = await API.getTransactions();
         renderTransactions();
       }
 
@@ -396,33 +224,32 @@
         });
 
         if (filtered.length === 0) {
-          transactionList.innerHTML = `<div style="text-align:center; padding:1rem;">No transactions.</div>`;
+          transactionList.innerHTML = `<div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">No transactions found.</div>`;
           return;
         }
 
         filtered.forEach((tx) => {
           const div = document.createElement("div");
-          div.className = "transaction-item";
+          div.className = "tx-item";
+          const isIncome = tx.amount >= 0;
+          const iconName = tx.icon || (isIncome ? 'arrow-up' : 'arrow-down');
+
           div.innerHTML = `
-            <div class="left">
-              <div class="icon">
-                ${tx.amount >= 0 ? "🤑" : "😵"} <i class="fas fa-${
-            tx.icon
-          }"></i>
+            <div style="display:flex; align-items:center; gap:0.9rem;">
+              <div class="icon-avatar ${isIncome ? 'income' : 'expense'}">
+                <i class="fas fa-${iconName}"></i>
               </div>
-              <div class="details">
-                <strong>${tx.name}</strong>
-                <small>${tx.category} - ${tx.date}</small>
+              <div>
+                <strong style="font-size:0.98rem; display:block;">${tx.name || 'Transaction'}</strong>
+                <small style="color:var(--text-muted); font-size:0.78rem;">${tx.thingType || tx.category || ''} • ${tx.date || ''}</small>
               </div>
             </div>
-            <div class="amount ${tx.amount >= 0 ? "income" : "expense"}">
-              ${tx.amount >= 0 ? "+" : "-"}₹${Math.abs(tx.amount)}
-              <button onclick="showEditForm('${
-                tx.id
-              }')" style="margin-left: 10px; background:#2f1b45; color:white; border:none; border-radius:5px; padding:4px 8px; cursor:pointer;">✏️</button>
-              <button onclick="deleteTransaction('${
-                tx.id
-              }')" style="margin-left: 5px; background:#ff5d75; color:white; border:none; border-radius:5px; padding:4px 8px; cursor:pointer;">🗑️</button>
+            <div class="tx-actions">
+              <span class="${isIncome ? 'income' : 'expense'}" style="font-weight:700; font-size:1.05rem; margin-right:0.5rem;">
+                ${isIncome ? '+' : '-'}₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+              </span>
+              <button class="btn-icon" onclick="showEditForm('${tx.id}')" title="Edit"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon delete" onclick="deleteTransaction('${tx.id}')" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
           `;
           transactionList.appendChild(div);
@@ -432,12 +259,8 @@
       }
 
       function updateChart() {
-        const income = transactions
-          .filter((t) => t.amount > 0)
-          .reduce((a, b) => a + b.amount, 0);
-        const expense = transactions
-          .filter((t) => t.amount < 0)
-          .reduce((a, b) => a + b.amount, 0);
+        const income = transactions.filter((t) => t.amount > 0).reduce((a, b) => a + b.amount, 0);
+        const expense = transactions.filter((t) => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
 
         if (chart) chart.destroy();
 
@@ -447,28 +270,28 @@
             labels: ["Income", "Expense"],
             datasets: [
               {
-                data: [income, Math.abs(expense)],
+                data: [income, expense],
                 backgroundColor: ["#4ee1c1", "#ff5d75"],
-                borderColor: "#120c1b",
+                borderColor: "#1d1329",
+                borderWidth: 3
               },
             ],
           },
           options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
-                labels: { color: "white" },
+                position: 'bottom',
+                labels: { color: "#bca9e8", font: { family: 'Inter', size: 11 }, padding: 12 },
               },
             },
           },
         });
       }
 
-      window.addEventListener("storage", () => {
-        transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-        renderTransactions();
-      });
-
-      renderTransactions();
+      window.addEventListener("storage", () => { fetchAndRender(); });
+      fetchAndRender();
 
       function showEditForm(id) {
         const tx = transactions.find((t) => String(t.id) === String(id));
@@ -476,60 +299,37 @@
 
         document.getElementById("editId").value = tx.id;
         document.getElementById("editName").value = tx.name;
-        document.getElementById("editCategory").value =
-          tx.amount >= 0 ? "income" : "expense";
-        document.getElementById("editAmount").value = tx.amount;
-        document.getElementById("editDate").value = tx.date;
+        document.getElementById("editCategory").value = tx.category || (tx.amount >= 0 ? "Income" : "Expense");
+        document.getElementById("editAmount").value = Math.abs(tx.amount);
 
-        document.getElementById("editFormContainer").style.display = "block";
-        window.scrollTo({
-          top: document.getElementById("editFormContainer").offsetTop - 50,
-          behavior: "smooth",
-        });
+        const formContainer = document.getElementById("editFormContainer");
+        formContainer.style.display = "block";
+        formContainer.scrollIntoView({ behavior: "smooth" });
       }
 
-      function cancelEdit() {
+      function hideEditForm() {
         document.getElementById("editFormContainer").style.display = "none";
         document.getElementById("editForm").reset();
       }
 
-      document
-        .getElementById("editForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
+      document.getElementById("editForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const id = document.getElementById("editId").value;
+        const name = document.getElementById("editName").value;
+        const category = document.getElementById("editCategory").value;
+        let amount = parseFloat(document.getElementById("editAmount").value);
+        const existingTx = transactions.find(t => String(t.id) === String(id));
+        if (existingTx && existingTx.amount < 0) amount = -Math.abs(amount);
 
-          const id = document.getElementById("editId").value;
-          const name = document.getElementById("editName").value;
-          const category = document.getElementById("editCategory").value;
-          const amount = parseFloat(
-            document.getElementById("editAmount").value
-          );
-          const date = document.getElementById("editDate").value;
+        await API.updateTransaction(id, { name, category, amount });
+        await fetchAndRender();
+        hideEditForm();
+      });
 
-          const index = transactions.findIndex(
-            (t) => String(t.id) === String(id)
-          );
-          if (index !== -1) {
-            transactions[index] = {
-              ...transactions[index],
-              name,
-              category,
-              amount,
-              date,
-            };
-
-            localStorage.setItem("transactions", JSON.stringify(transactions));
-            renderTransactions();
-            cancelEdit();
-          }
-        });
-      function deleteTransaction(id) {
+      async function deleteTransaction(id) {
         if (confirm("Are you sure you want to delete this transaction?")) {
-          transactions = transactions.filter(
-            (t) => String(t.id) !== String(id)
-          );
-          localStorage.setItem("transactions", JSON.stringify(transactions));
-          renderTransactions();
+          await API.deleteTransaction(id);
+          await fetchAndRender();
         }
       }
     </script>
