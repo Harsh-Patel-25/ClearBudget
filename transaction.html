@@ -67,6 +67,27 @@
         min-height: 240px;
       }
 
+      .transaction-card-container {
+        padding: 0.9rem 0.6rem;
+        overflow: hidden;
+      }
+
+      .transaction-item {
+        margin: 0.75rem 0.65rem !important;
+        padding: 1.1rem 1.2rem !important;
+        border-radius: var(--radius-md, 14px) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid var(--border-color, rgba(168, 109, 255, 0.2)) !important;
+        transition: var(--transition) !important;
+      }
+
+      .transaction-item:hover {
+        background: rgba(168, 109, 255, 0.08) !important;
+        border-color: var(--border-glow, rgba(168, 109, 255, 0.4)) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      }
+
       .tx-item {
         display: flex;
         justify-content: space-between;
@@ -74,14 +95,6 @@
         padding: 1rem 1.25rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         transition: var(--transition);
-      }
-
-      .tx-item:hover {
-        background: rgba(255, 255, 255, 0.02);
-      }
-
-      .tx-item:last-child {
-        border-bottom: none;
       }
 
       .tx-actions {
@@ -115,9 +128,129 @@
         background: var(--expense);
         border-color: var(--expense);
       }
+
+      /* Calendar View Component Styles */
+      .calendar-card {
+        margin-bottom: 1.5rem;
+        background: var(--bg-card-glass, rgba(29, 19, 41, 0.75));
+        border: 1px solid var(--border-glow, rgba(168, 109, 255, 0.35));
+        border-radius: var(--radius-lg, 18px);
+        padding: 1.25rem;
+        box-shadow: var(--shadow-glass);
+        animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.1rem;
+        width: 100%;
+      }
+
+      .calendar-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        text-align: center;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        text-align: center;
+      }
+
+      .calendar-day-header {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        padding: 4px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .calendar-day-cell {
+        min-height: 46px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-main);
+        user-select: none;
+      }
+
+      .calendar-day-cell:hover {
+        background: rgba(168, 109, 255, 0.15);
+        border-color: rgba(168, 109, 255, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .calendar-day-cell.empty {
+        background: transparent;
+        border: none;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .calendar-day-cell.today {
+        border-color: var(--primary, #a86dff);
+        background: rgba(168, 109, 255, 0.1);
+      }
+
+      .calendar-day-cell.selected {
+        background: var(--primary, #a86dff) !important;
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+        box-shadow: 0 0 15px rgba(168, 109, 255, 0.5) !important;
+      }
+
+      .day-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-top: 3px;
+      }
+
+      .day-dot.profit {
+        background: #4ee1c1;
+        box-shadow: 0 0 6px rgba(78, 225, 193, 0.8);
+      }
+
+      .day-dot.loss {
+        background: #ff5d75;
+        box-shadow: 0 0 6px rgba(255, 93, 117, 0.8);
+      }
+
+      .calendar-day-cell.selected .day-dot {
+        background: #ffffff !important;
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.9) !important;
+      }
+
+      .date-filter-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(168, 109, 255, 0.1);
+        border: 1px solid rgba(168, 109, 255, 0.25);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md, 12px);
+        margin: 0.6rem 0.65rem 0.85rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
     </style>
   </head>
-  <body style="padding: 1.8rem 1.2rem 85px;">
+  <body style="padding: 0 1.2rem 85px;">
     <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
       <div class="page-header">
         <div>
@@ -125,10 +258,39 @@
           <p class="subhead">Track, filter, and edit your finances</p>
         </div>
         <div class="filters">
-          <button class="active" onclick="setFilter('all', this)">All</button>
-          <button onclick="setFilter('income', this)">Income</button>
-          <button onclick="setFilter('expense', this)">Expense</button>
+          <button id="btnFilterAll" class="active" onclick="setFilter('all', this)">All</button>
+          <button id="btnFilterIncome" onclick="setFilter('income', this)">Income</button>
+          <button id="btnFilterExpense" onclick="setFilter('expense', this)">Expense</button>
+          <button id="calendarToggleBtn" onclick="toggleCalendarView(this)" title="Toggle Calendar View">
+            <i class="fas fa-calendar-alt"></i> Calendar
+          </button>
         </div>
+      </div>
+
+      <!-- Calendar View Section -->
+      <div id="calendarSection" class="calendar-card" style="display: none;">
+        <div class="calendar-header">
+          <button class="btn-icon" onclick="changeMonth(-1)" title="Previous Month" aria-label="Previous Month">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <h3 class="calendar-title" id="calendarMonthTitle">August 2026</h3>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <button class="btn-secondary" onclick="jumpToToday()" style="padding: 4px 10px; font-size: 0.78rem;" title="Jump to Today">Today</button>
+            <button class="btn-icon" onclick="changeMonth(1)" title="Next Month" aria-label="Next Month">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendarDaysHeader">
+          <div class="calendar-day-header">Sun</div>
+          <div class="calendar-day-header">Mon</div>
+          <div class="calendar-day-header">Tue</div>
+          <div class="calendar-day-header">Wed</div>
+          <div class="calendar-day-header">Thu</div>
+          <div class="calendar-day-header">Fri</div>
+          <div class="calendar-day-header">Sat</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" style="margin-top: 4px;"></div>
       </div>
 
       <div class="main-grid">
@@ -139,8 +301,8 @@
           </div>
         </div>
 
-        <div class="card-glass" style="padding: 0; overflow:hidden;">
-          <div id="transactionList" style="max-height: 550px; overflow-y: auto;"></div>
+        <div class="card-glass transaction-card-container">
+          <div id="transactionList" style="max-height: 550px; overflow-y: auto; padding: 0.25rem;"></div>
         </div>
       </div>
 
@@ -203,9 +365,57 @@
       let filterType = "all";
       let chart;
 
+      // Calendar View State
+      let currentCalendarDate = new Date();
+      let selectedDateObj = null;
+      let showCalendar = false;
+
+      function toggleCalendarView(btnElement) {
+        showCalendar = !showCalendar;
+        const calendarSec = document.getElementById("calendarSection");
+        if (showCalendar) {
+          calendarSec.style.display = "block";
+          if (btnElement) btnElement.classList.add("active");
+          renderCalendar();
+        } else {
+          calendarSec.style.display = "none";
+          if (btnElement) btnElement.classList.remove("active");
+        }
+      }
+
+      function changeMonth(delta) {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+        renderCalendar();
+      }
+
+      function jumpToToday() {
+        currentCalendarDate = new Date();
+        renderCalendar();
+      }
+
+      function clearDateFilter() {
+        selectedDateObj = null;
+        renderCalendar();
+        renderTransactions();
+      }
+
+      function isSameDay(d1, d2) {
+        if (!d1 || !d2) return false;
+        const date1 = new Date(d1);
+        const date2 = new Date(d2);
+        if (isNaN(date1.getTime()) || isNaN(date2.getTime())) return false;
+        return (
+          date1.getFullYear() === date2.getFullYear() &&
+          date1.getMonth() === date2.getMonth() &&
+          date1.getDate() === date2.getDate()
+        );
+      }
+
       function setFilter(type, btnElement) {
         filterType = type;
-        document.querySelectorAll(".filters button").forEach((btn) => btn.classList.remove("active"));
+        document.querySelectorAll(".filters button").forEach((btn) => {
+          if (btn.id !== "calendarToggleBtn") btn.classList.remove("active");
+        });
         if (btnElement) {
           btnElement.classList.add("active");
         }
@@ -214,28 +424,145 @@
 
       async function fetchAndRender() {
         transactions = await API.getTransactions();
+        if (window.location.search.includes("view=calendar") && !showCalendar) {
+          toggleCalendarView(document.getElementById("calendarToggleBtn"));
+        }
         renderTransactions();
+        if (showCalendar) renderCalendar();
+      }
+
+      function renderCalendar() {
+        const grid = document.getElementById("calendarGrid");
+        const monthTitle = document.getElementById("calendarMonthTitle");
+        if (!grid || !monthTitle) return;
+
+        grid.innerHTML = "";
+
+        const year = currentCalendarDate.getFullYear();
+        const month = currentCalendarDate.getMonth();
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        monthTitle.textContent = `${monthNames[month]} ${year}`;
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+
+        // Empty cells before month start
+        for (let i = 0; i < firstDayIndex; i++) {
+          const emptyCell = document.createElement("div");
+          emptyCell.className = "calendar-day-cell empty";
+          grid.appendChild(emptyCell);
+        }
+
+        // Days cells
+        for (let day = 1; day <= daysInMonth; day++) {
+          const cellDate = new Date(year, month, day);
+          const cell = document.createElement("div");
+          cell.className = "calendar-day-cell";
+
+          if (isSameDay(today, cellDate)) {
+            cell.classList.add("today");
+          }
+
+          if (selectedDateObj && isSameDay(selectedDateObj, cellDate)) {
+            cell.classList.add("selected");
+          }
+
+          // Calculate income & expense for this day
+          let dayIncome = 0;
+          let dayExpense = 0;
+
+          transactions.forEach((tx) => {
+            if (isSameDay(tx.date, cellDate)) {
+              if (tx.amount >= 0) {
+                dayIncome += tx.amount;
+              } else {
+                dayExpense += Math.abs(tx.amount);
+              }
+            }
+          });
+
+          const hasTx = (dayIncome + dayExpense) > 0;
+          const isProfit = dayIncome >= dayExpense;
+
+          cell.innerHTML = `
+            <span>${day}</span>
+            ${hasTx ? `<span class="day-dot ${isProfit ? 'profit' : 'loss'}" title="Income: ₹${dayIncome.toFixed(2)} | Expense: ₹${dayExpense.toFixed(2)} (${isProfit ? 'Profit' : 'Loss'})"></span>` : ''}
+          `;
+
+          cell.addEventListener("click", () => {
+            if (selectedDateObj && isSameDay(selectedDateObj, cellDate)) {
+              selectedDateObj = null;
+            } else {
+              selectedDateObj = cellDate;
+            }
+            renderCalendar();
+            renderTransactions();
+          });
+
+          grid.appendChild(cell);
+        }
       }
 
       function renderTransactions() {
         transactionList.innerHTML = "";
 
-        const filtered = transactions.filter((tx) => {
+        let filtered = transactions.filter((tx) => {
           if (filterType === "all") return true;
           return filterType === "income" ? tx.amount > 0 : tx.amount < 0;
         });
 
+        if (selectedDateObj) {
+          filtered = filtered.filter((tx) => isSameDay(tx.date, selectedDateObj));
+        }
+
+        if (selectedDateObj) {
+          let selIncome = 0;
+          let selExpense = 0;
+          filtered.forEach(tx => {
+            if (tx.amount >= 0) selIncome += tx.amount;
+            else selExpense += Math.abs(tx.amount);
+          });
+          const net = selIncome - selExpense;
+          const isProfit = net >= 0;
+
+          const dateStr = selectedDateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+          const banner = document.createElement("div");
+          banner.className = "date-filter-banner";
+          banner.innerHTML = `
+            <div>
+              <strong style="color:var(--text-main); font-size:0.9rem;"><i class="fas fa-calendar-day accent"></i> ${dateStr}</strong>
+              <div style="font-size:0.78rem; margin-top:2px; color:var(--text-sub);">
+                Income: <span style="color:var(--income); font-weight:600;">₹${selIncome.toFixed(2)}</span> • 
+                Expense: <span style="color:var(--expense); font-weight:600;">₹${selExpense.toFixed(2)}</span> • 
+                Net: <span style="color:${isProfit ? 'var(--income)' : 'var(--expense)'}; font-weight:700;">${isProfit ? 'Profit' : 'Loss'} ₹${Math.abs(net).toFixed(2)}</span>
+              </div>
+            </div>
+            <button class="btn-secondary" onclick="clearDateFilter()" style="padding:4px 10px; font-size:0.75rem;">
+              <i class="fas fa-times"></i> Show All Dates
+            </button>
+          `;
+          transactionList.appendChild(banner);
+        }
+
         if (filtered.length === 0) {
-          transactionList.innerHTML = `<div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">No transactions found.</div>`;
+          const noTxMsg = document.createElement("div");
+          noTxMsg.style.textAlign = "center";
+          noTxMsg.style.padding = "3rem 1rem";
+          noTxMsg.style.color = "var(--text-muted)";
+          noTxMsg.textContent = selectedDateObj ? "No transactions found for this date." : "No transactions found.";
+          transactionList.appendChild(noTxMsg);
+          renderChart();
           return;
         }
 
         filtered.forEach((tx) => {
           const isIncome = tx.amount >= 0;
           const item = document.createElement("div");
-          item.className = "card-glass transaction-item";
-          item.style.margin = "0.75rem 0";
-          item.style.padding = "1.2rem";
+          item.className = "transaction-item";
+          item.style.margin = "0.75rem 0.65rem";
+          item.style.padding = "1.1rem 1.2rem";
           item.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div style="display:flex; align-items:center; gap:1rem;">
@@ -249,7 +576,7 @@
               </div>
               <div style="text-align:right; display:flex; align-items:center; gap:1rem;">
                 <span style="font-weight:700; font-size:1.1rem; color:${isIncome ? 'var(--income)' : 'var(--expense)'}">
-                  ${isIncome ? '+' : '-'}₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                  ₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
                 </span>
                 <div style="display:flex; gap:0.4rem;">
                   <button class="btn-icon" onclick="showEditForm('${tx.id}')" title="Edit"><i class="fas fa-pen"></i></button>
@@ -265,29 +592,42 @@
       }
 
       function renderChart() {
-        const categories = {};
-        transactions.forEach((t) => {
-          if (t.amount < 0) {
-            const cat = t.category || "Expense";
-            categories[cat] = (categories[cat] || 0) + Math.abs(t.amount);
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        const listToUse = (selectedDateObj || filterType !== "all") ? 
+          transactions.filter(t => {
+            if (selectedDateObj && !isSameDay(t.date, selectedDateObj)) return false;
+            if (filterType === "income") return t.amount > 0;
+            if (filterType === "expense") return t.amount < 0;
+            return true;
+          }) : transactions;
+
+        listToUse.forEach((t) => {
+          if (t.amount >= 0) {
+            totalIncome += t.amount;
+          } else {
+            totalExpense += Math.abs(t.amount);
           }
         });
 
-        const labels = Object.keys(categories);
-        const data = Object.values(categories);
+        const hasData = (totalIncome + totalExpense) > 0;
+
+        const labels = hasData ? ["Income", "Expense"] : ["No Data"];
+        const data = hasData ? [totalIncome, totalExpense] : [1];
+        const bgColors = hasData ? ["#4ee1c1", "#ff5d75"] : ["#2f2540"];
 
         if (chart) chart.destroy();
         chart = new Chart(chartCtx, {
           type: "doughnut",
           data: {
-            labels: labels.length ? labels : ["No Expenses"],
+            labels: labels,
             datasets: [
               {
-                data: data.length ? data : [1],
-                backgroundColor: labels.length
-                  ? ["#ff5d75", "#a86dff", "#4ee1c1", "#ffb800", "#3b82f6"]
-                  : ["#2f2540"],
+                data: data,
+                backgroundColor: bgColors,
                 borderWidth: 0,
+                hoverOffset: 4
               },
             ],
           },
@@ -296,10 +636,20 @@
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'bottom',
-                labels: { color: "#bca9e8", font: { family: 'Inter', size: 11 }, padding: 12 },
+                display: false
               },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    if (!hasData) return " No data available";
+                    const label = context.label || '';
+                    const val = context.raw || 0;
+                    return ` ${label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                  }
+                }
+              }
             },
+            cutout: '70%'
           },
         });
       }

@@ -185,28 +185,111 @@ const Auth = {
 
 
   renderUserHeader() {
+    const isLoginPage = window.location.pathname.endsWith("login.html") || window.location.pathname.endsWith("/login");
+    if (isLoginPage) return;
+
+    let topNav = document.querySelector(".top-navbar");
+    if (!topNav) {
+      topNav = document.createElement("header");
+      topNav.className = "top-navbar";
+      topNav.innerHTML = `
+        <div class="top-nav-inner">
+          <a href="index.html" class="nav-brand" title="ClearBudget Home">
+            <i class="fas fa-wallet brand-icon"></i>
+            <span class="brand-text">Clear<span class="text-gradient">Budget</span></span>
+          </a>
+          <div class="nav-profile-slot"></div>
+        </div>
+      `;
+      if (document.body) {
+        document.body.prepend(topNav);
+      }
+    }
+
     const user = this.getUser();
     if (!user) return;
 
-    const targetHeader = document.querySelector(".app-header, .page-header, .page-header-row, .top-bar, header");
-    if (targetHeader && !document.querySelector(".user-profile-badge")) {
-      const badge = document.createElement("div");
-      badge.className = "user-profile-badge";
-      badge.innerHTML = `
-        <div class="user-info-chip" title="${user.email}">
+    const profileSlot = topNav.querySelector(".nav-profile-slot");
+    if (profileSlot && !profileSlot.querySelector(".user-profile-dropdown-wrapper")) {
+      if (!profileSlot.querySelector(".nav-calendar-btn")) {
+        const calBtn = document.createElement("a");
+        calBtn.href = "transaction.html?view=calendar";
+        calBtn.className = "nav-calendar-btn";
+        calBtn.id = "navCalendarBtn";
+        calBtn.title = "Calendar View";
+        calBtn.setAttribute("aria-label", "Calendar View");
+        calBtn.innerHTML = `<i class="fas fa-calendar-alt"></i>`;
+        profileSlot.appendChild(calBtn);
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "user-profile-dropdown-wrapper";
+
+      const displayName = user.name || (user.email ? user.email.split("@")[0] : "User");
+
+      wrapper.innerHTML = `
+        <button type="button" class="profile-icon-btn" id="userProfileBtn" aria-label="User Profile Menu" aria-expanded="false" title="${displayName}">
           <i class="fas fa-user-circle"></i>
-          <span class="user-name">${user.name || user.email.split("@")[0]}</span>
-        </div>
-        ${this.isAdmin() ? `
-          <a href="admin.html" class="btn-secondary" style="padding:4px 10px; font-size:0.75rem; font-weight:600; border-color:var(--primary); color:var(--primary);" title="Admin Dashboard">
-            <i class="fas fa-user-shield"></i> Admin
-          </a>
-        ` : ''}
-        <button onclick="Auth.logout()" class="btn-logout" title="Log Out">
-          <i class="fas fa-sign-out-alt"></i> Logout
         </button>
+        <div class="profile-dropdown-menu" id="userProfileMenu" aria-hidden="true">
+          <div class="profile-menu-header">
+            <div class="profile-avatar-large">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-menu-user-details">
+              <div class="profile-menu-name">${displayName}</div>
+              <div class="profile-menu-email">${user.email || ''}</div>
+              ${this.isAdmin() ? `
+                <span class="profile-admin-badge"><i class="fas fa-user-shield"></i> Admin</span>
+              ` : ''}
+            </div>
+          </div>
+          <div class="profile-menu-divider"></div>
+          <div class="profile-menu-actions">
+            ${this.isAdmin() ? `
+              <a href="admin.html" class="profile-menu-item">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Dashboard</span>
+              </a>
+            ` : ''}
+            <button type="button" onclick="Auth.logout()" class="profile-menu-item logout-item">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
       `;
-      targetHeader.appendChild(badge);
+
+      profileSlot.appendChild(wrapper);
+
+      const btn = wrapper.querySelector('#userProfileBtn');
+      const menu = wrapper.querySelector('#userProfileMenu');
+
+      if (btn && menu) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = menu.classList.toggle('show');
+          btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!wrapper.contains(e.target)) {
+            menu.classList.remove('show');
+            btn.setAttribute('aria-expanded', 'false');
+            menu.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && menu.classList.contains('show')) {
+            menu.classList.remove('show');
+            btn.setAttribute('aria-expanded', 'false');
+            menu.setAttribute('aria-hidden', 'true');
+            btn.focus();
+          }
+        });
+      }
     }
   }
 };
