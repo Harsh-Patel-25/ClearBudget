@@ -18,6 +18,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// Ensure DB connection for serverless function calls
+app.use(async (req, res, next) => {
+  if (!isMongoConnected && process.env.MONGODB_URI) {
+    await connectDB();
+  }
+  next();
+});
+
 // In-Memory Storage Fallback
 let memoryUsers = [];
 let memoryTransactions = [];
@@ -762,6 +770,10 @@ app.get("/api/admin/export", adminAuthMiddleware, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 ClearBudget Server listening at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 ClearBudget Server listening at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

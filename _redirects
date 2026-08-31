@@ -1,3 +1,2 @@
-# ClearBudget Netlify Redirect Rules
-# Redirect SPA routes to index.html if needed
-/*    /index.html   200
+/api/*  /.netlify/functions/api/:splat  200
+/*      /index.html                     200
