@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <script src="js/auth.js"></script>
     <style>
       .page-header-row {
         display: flex;
@@ -270,6 +271,7 @@
       </a>
     </div>
 
+    <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
       let editingIndex = null;
@@ -352,6 +354,7 @@
         const date = getDateString();
 
         if (!name || !amount) {
+          showToast("Please fill in name and amount.", "error");
           document.getElementById("modalError").style.display = "block";
           return;
         }
@@ -362,8 +365,10 @@
         if (editingIndex !== null && cachedFriends[editingIndex]) {
           await API.settleFriend(cachedFriends[editingIndex].id);
           await API.addFriend(friendObj);
+          showToast("Friend record updated!", "success");
         } else {
           await API.addFriend(friendObj);
+          showToast("Friend record added successfully!", "success");
         }
 
         editingIndex = null;
@@ -385,10 +390,18 @@
       }
 
       async function doneFriend(id, index) {
-        if (!confirm("Mark this friend record as settled/done?")) return;
-        const target = cachedFriends[index] || { id };
+        const target = cachedFriends[index] || { id, name: "friend record" };
+        const confirmed = await showConfirm({
+          title: "Settle Record",
+          message: `Mark "${target.name || 'this friend record'}" as settled/done?`,
+          confirmText: "Settle",
+          isDanger: false,
+          icon: "fa-check-circle"
+        });
+        if (!confirmed) return;
         if (target.id) {
           await API.settleFriend(target.id);
+          showToast(`"${target.name || 'Record'}" marked as settled!`, "success");
         }
         await loadFriends();
       }

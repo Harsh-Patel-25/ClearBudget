@@ -81,3 +81,46 @@
 body {
   padding-bottom: 72px;
 }
+
+/* User Profile Badge in Header */
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(168, 109, 255, 0.1);
+  border: 1px solid rgba(168, 109, 255, 0.25);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  backdrop-filter: blur(10px);
+}
+.user-info-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main, #f3edff);
+  font-weight: 600;
+}
+.user-info-chip i {
+  color: var(--primary, #a86dff);
+  font-size: 1.1rem;
+}
+.btn-logout {
+  background: rgba(255, 93, 117, 0.15);
+  color: #ff5d75;
+  border: 1px solid rgba(255, 93, 117, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.25s ease;
+}
+.btn-logout:hover {
+  background: rgba(255, 93, 117, 0.3);
+  box-shadow: 0 0 10px rgba(255, 93, 117, 0.3);
+}
+

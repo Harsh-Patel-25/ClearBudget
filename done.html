@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <script src="js/auth.js"></script>
   </head>
   <body style="padding: 1.8rem 1.2rem 85px;">
     <div style="max-width: 800px; margin: 0 auto;" class="fade-in">
@@ -23,6 +24,7 @@
       <div id="doneList" style="display:flex; flex-direction:column; gap:1rem;"></div>
     </div>
 
+    <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
       let cachedDone = [];
@@ -59,9 +61,14 @@
                 <div style="font-weight:700; font-size:1.15rem; color:${isLeva ? 'var(--income)' : 'var(--expense)'};">
                   ₹${parseFloat(f.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
                 </div>
-                <button class="btn-icon delete" onclick="deleteFriend('${f.id || index}', ${index})" title="Delete" style="margin-top:0.5rem;">
-                  <i class="fas fa-trash"></i>
-                </button>
+                <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:0.5rem;">
+                  <button class="btn-icon restore" onclick="restoreFriend('${f.id || index}', ${index})" title="Restore to Friends Ledger">
+                    <i class="fas fa-rotate-left"></i>
+                  </button>
+                  <button class="btn-icon delete" onclick="deleteFriend('${f.id || index}', ${index})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
               </div>
             </div>
             <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem; display:flex; gap:1rem;">
@@ -73,17 +80,48 @@
         });
       }
 
+      async function restoreFriend(id, index) {
+        const item = cachedDone[index] || { id, name: "this record" };
+        const sectionName = item.type === "leva" ? "Leva na (Receivable)" : "Deva na (Payable)";
+        const confirmed = await showConfirm({
+          title: "Restore Record",
+          message: `Restore "${item.name}" back to Friends Ledger (${sectionName})?`,
+          confirmText: "Restore",
+          isDanger: false,
+          icon: "fa-rotate-left"
+        });
+        if (confirmed) {
+          await API.restoreFriend(item.id || id);
+          showToast(`"${item.name}" restored to Friends Ledger!`, "success");
+          await loadDoneFriends();
+        }
+      }
+
       async function deleteAllDone() {
-        if (confirm("Delete all settled history records?")) {
+        const confirmed = await showConfirm({
+          title: "Clear Settled History",
+          message: "Are you sure you want to delete all settled history records?",
+          confirmText: "Clear All",
+          isDanger: true
+        });
+        if (confirmed) {
           await API.clearDoneFriends();
+          showToast("Settled history records cleared!", "success");
           await loadDoneFriends();
         }
       }
 
       async function deleteFriend(id, index) {
         const item = cachedDone[index] || { id, name: "this record" };
-        if (confirm(`Delete "${item.name}" from history?`)) {
+        const confirmed = await showConfirm({
+          title: "Delete Record",
+          message: `Delete "${item.name}" from history?`,
+          confirmText: "Delete",
+          isDanger: true
+        });
+        if (confirmed) {
           await API.deleteFriend(item.id || id);
+          showToast(`"${item.name}" deleted from history.`, "success");
           await loadDoneFriends();
         }
       }

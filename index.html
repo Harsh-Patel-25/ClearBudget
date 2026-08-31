@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="192.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="js/auth.js"></script>
     <title>ClearBudget - Dashboard</title>
     <style>
       .app-header {
@@ -283,6 +284,7 @@
     </div>
     <button id="installBtn"><i class="fas fa-download"></i> Install App</button>
 
+    <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
       const incomeEl = document.getElementById("income");
@@ -385,8 +387,15 @@
       });
 
       async function clearAllTransactions() {
-        if (confirm("Are you sure you want to clear all transactions?")) {
+        const confirmed = await showConfirm({
+          title: "Clear All Transactions",
+          message: "Are you sure you want to clear all transactions? This action cannot be undone.",
+          confirmText: "Clear All",
+          isDanger: true
+        });
+        if (confirmed) {
           await API.clearAllTransactions();
+          showToast("All transactions cleared", "success");
           updateDashboard();
           renderRecentTransactions();
         }

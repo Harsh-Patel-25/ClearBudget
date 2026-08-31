@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login & Register - ClearBudget</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-dark: #120c1b;
+      --card-bg: rgba(29, 19, 41, 0.88);
+      --input-bg: rgba(255, 255, 255, 0.05);
+      --input-border: rgba(168, 109, 255, 0.2);
+      --input-focus-border: #a86dff;
+      --text-main: #f3edff;
+      --text-sub: #bca9e8;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1.5rem;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(168, 109, 255, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(78, 225, 193, 0.1) 0%, transparent 40%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Decorative Glowing Orbs */
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .orb-1 {
+      width: 320px;
+      height: 320px;
+      background: #7c3aed;
+      top: -80px;
+      left: -80px;
+    }
+    .orb-2 {
+      width: 280px;
+      height: 280px;
+      background: #4ee1c1;
+      bottom: -60px;
+      right: -60px;
+      opacity: 0.3;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand-logo {
+      width: 68px;
+      height: 68px;
+      background: linear-gradient(135deg, #a86dff, #6c32d9);
+      border-radius: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      color: white;
+      box-shadow: 0 10px 30px rgba(168, 109, 255, 0.45);
+      margin-bottom: 1.2rem;
+      transition: transform 0.3s ease;
+    }
+    .brand-logo:hover {
+      transform: scale(1.05) rotate(3deg);
+    }
+
+    .brand-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-header p {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+    }
+
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 24px;
+      padding: 2.2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 109, 255, 0.1);
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 5px;
+      border-radius: 14px;
+      margin-bottom: 1.8rem;
+      border: 1px solid rgba(168, 109, 255, 0.15);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      text-align: center;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #a86dff, #7c3aed);
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(168, 109, 255, 0.4);
+    }
+
+    .form-group {
+      margin-bottom: 1.35rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i.input-icon {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7b6d9e;
+      font-size: 1.05rem;
+      transition: color 0.25s ease;
+      z-index: 2;
+    }
+
+    .input-wrapper input {
+      font-family: inherit;
+      width: 100%;
+      padding: 0.9rem 1.1rem 0.9rem 3rem !important;
+      border-radius: 14px !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(168, 109, 255, 0.2) !important;
+      color: var(--text-main) !important;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.25s ease !important;
+    }
+
+    /* Focus effect on input and icon */
+    .input-wrapper input:focus {
+      border-color: var(--primary) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 0 0 4px rgba(168, 109, 255, 0.25), 0 0 20px rgba(168, 109, 255, 0.15) !important;
+    }
+
+    .input-wrapper input:focus ~ i.input-icon,
+    .input-wrapper input:focus + i.input-icon {
+      color: var(--primary);
+    }
+
+    /* Password Toggle Icon */
+    .toggle-password {
+      position: absolute;
+      right: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7b6d9e;
+      cursor: pointer;
+      transition: color 0.25s ease;
+      z-index: 2;
+    }
+
+    .toggle-password:hover {
+      color: var(--text-main);
+    }
+
+    /* Dark Theme Fix for Chrome/Edge/Safari Autofill */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+      -webkit-text-fill-color: #f3edff !important;
+      -webkit-box-shadow: 0 0 0px 1000px #211536 inset !important;
+      box-shadow: 0 0 0px 1000px #211536 inset !important;
+      border-color: var(--primary) !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .alert-box {
+      background: rgba(255, 93, 117, 0.15);
+      border: 1px solid rgba(255, 93, 117, 0.4);
+      color: #ff8ba0;
+      padding: 0.85rem 1.1rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 1.3rem;
+      display: none;
+      align-items: center;
+      gap: 0.7rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .alert-box.active {
+      display: flex;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.95rem;
+      font-size: 1rem;
+      margin-top: 0.6rem;
+      border-radius: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.8rem;
+      color: #7b6d9e;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .auth-footer i {
+      color: #4ee1c1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <div class="auth-container fade-in">
+    <div class="brand-header">
+      <div class="brand-logo">
+        <i class="fas fa-wallet"></i>
+      </div>
+      <h1>Clear<span class="accent">Budget</span></h1>
+      <p>Your personal financial overview & expense tracker</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <div id="alert-error" class="alert-box">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="alert-msg">Error message</span>
+      </div>
+
+      <form id="auth-form" onsubmit="handleSubmit(event)">
+        <div class="form-group" id="group-name" style="display: none;">
+          <label for="input-name">Full Name</label>
+          <div class="input-wrapper">
+            <input type="text" id="input-name" placeholder="John Doe" autocomplete="name" />
+            <i class="fas fa-user input-icon"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="input-email">Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" id="input-email" placeholder="name@example.com" required autocomplete="email" />
+            <i class="fas fa-envelope input-icon"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="input-password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="input-password" placeholder="••••••••" required autocomplete="current-password" />
+            <i class="fas fa-lock input-icon"></i>
+            <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility()" title="Show/Hide Password"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary btn-submit" id="btn-submit">
+          <span id="btn-text"><i class="fas fa-sign-in-alt"></i> Sign In</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      <i class="fas fa-shield-alt"></i>
+      <span>100% Private • Isolated Account Data</span>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/toast.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) {
+      window.location.href = "index.html";
+    }
+
+    let currentMode = "login";
+
+    function switchTab(mode) {
+      currentMode = mode;
+      document.getElementById("alert-error").classList.remove("active");
+      
+      const tabLogin = document.getElementById("tab-login");
+      const tabSignup = document.getElementById("tab-signup");
+      const groupName = document.getElementById("group-name");
+      const inputName = document.getElementById("input-name");
+      const btnText = document.getElementById("btn-text");
+
+      if (mode === "login") {
+        tabLogin.classList.add("active");
+        tabSignup.classList.remove("active");
+        groupName.style.display = "none";
+        inputName.removeAttribute("required");
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+      } else {
+        tabSignup.classList.add("active");
+        tabLogin.classList.remove("active");
+        groupName.style.display = "block";
+        inputName.setAttribute("required", "true");
+        btnText.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById("input-password");
+      const icon = document.querySelector(".toggle-password");
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        passInput.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    }
+
+    function showError(msg) {
+      const alertBox = document.getElementById("alert-error");
+      const alertMsg = document.getElementById("alert-msg");
+      alertMsg.textContent = msg;
+      alertBox.classList.add("active");
+      showToast(msg, "error");
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      document.getElementById("alert-error").classList.remove("active");
+
+      const email = document.getElementById("input-email").value.trim();
+      const password = document.getElementById("input-password").value;
+      const btnSubmit = document.getElementById("btn-submit");
+      const btnText = document.getElementById("btn-text");
+
+      btnSubmit.disabled = true;
+      btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        if (currentMode === "login") {
+          await Auth.login(email, password);
+        } else {
+          const name = document.getElementById("input-name").value.trim();
+          await Auth.signup(name, email, password);
+        }
+        window.location.href = "index.html";
+      } catch (err) {
+        showError(err.message || "An unexpected error occurred.");
+        btnSubmit.disabled = false;
+        btnText.innerHTML = currentMode === "login" 
+          ? '<i class="fas fa-sign-in-alt"></i> Sign In'
+          : '<i class="fas fa-user-plus"></i> Create Account';
+      }
+    }
+  </script>
+</body>
+</html>

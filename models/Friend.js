@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const friendSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -13,8 +19,16 @@ const friendSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["give", "take"],
-      default: "give",
+      enum: ["leva", "deva", "give", "take"],
+      default: "leva",
+    },
+    description: {
+      type: String,
+      default: "",
+    },
+    date: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Friends Ledger</title>
+    <script src="js/auth.js"></script>
     <style>
       body {
         margin: 0;
@@ -366,8 +367,7 @@
         </svg>
         Friends
       </a>
-    </div>
-
+    <script src="js/toast.js"></script>
     <script>
             let editingIndex = null;
 
@@ -404,7 +404,7 @@
                   <div class="friend-controls">
                     <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="doneFriend(${i})">✅ Done</button>
                     <button class="btn" style="width: 100%;" onclick="openModal()">+ Add Friend</button>
-                  </div>
+                  </div>`;
 
                 (f.type === "leva" ? levaList : devaList).appendChild(div);
               });
@@ -419,15 +419,17 @@
               ).value;
               const date = getDateString();
 
-              if (!name || !amount) return alert("Please fill all fields");
+              if (!name || !amount) return showToast("Please fill all fields", "error");
 
               const newFriend = { name, amount, description, type, date };
               let friends = JSON.parse(localStorage.getItem("friends") || "[]");
 
               if (editingIndex !== null) {
                 friends.splice(editingIndex, 1, newFriend);
+                showToast("Friend record updated!", "success");
               } else {
                 friends.push(newFriend);
+                showToast("Friend record added!", "success");
               }
 
               localStorage.setItem("friends", JSON.stringify(friends));
@@ -449,8 +451,14 @@
               openModal();
             }
 
-            function doneFriend(index) {
-              if (!confirm("Mark this transaction as done?")) return;
+            async function doneFriend(index) {
+              const confirmed = await showConfirm({
+                title: "Settle Transaction",
+                message: "Mark this transaction as done?",
+                confirmText: "Settle",
+                isDanger: false
+              });
+              if (!confirmed) return;
               let friends = JSON.parse(localStorage.getItem("friends") || "[]");
               let doneFriends = JSON.parse(
                 localStorage.getItem("doneFriends") || "[]"
