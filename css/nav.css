@@ -18,8 +18,13 @@
   box-shadow: 0 -4px 20px rgba(168, 109, 255, 0.08);
 }
 
-.bottom-nav a {
+.bottom-nav a,
+.bottom-nav button {
   color: #6a5d8a;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
   font-size: 0.65rem;
   text-align: center;
@@ -35,36 +40,52 @@
   font-weight: 500;
 }
 
-.bottom-nav a svg {
+.bottom-nav a i,
+.bottom-nav button i,
+.bottom-nav a svg,
+.bottom-nav button svg {
   display: block;
   width: 22px;
   height: 22px;
-  transition: fill 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  font-size: 1.15rem;
+  transition: fill 0.25s ease, color 0.25s ease, filter 0.25s ease, transform 0.25s ease;
   fill: #6a5d8a;
+  color: #6a5d8a;
 }
 
 /* Default (inactive) hover */
-.bottom-nav a:hover {
+.bottom-nav a:hover,
+.bottom-nav button:hover {
   color: #a98dcc;
 }
-.bottom-nav a:hover svg {
+.bottom-nav a:hover i,
+.bottom-nav button:hover i,
+.bottom-nav a:hover svg,
+.bottom-nav button:hover svg {
   fill: #a98dcc;
+  color: #a98dcc;
 }
 
 /* Active state */
-.bottom-nav a.active {
+.bottom-nav a.active,
+.bottom-nav button.active {
   color: #a86dff;
   font-weight: 700;
 }
 
-.bottom-nav a.active svg {
+.bottom-nav a.active i,
+.bottom-nav button.active i,
+.bottom-nav a.active svg,
+.bottom-nav button.active svg {
   fill: #a86dff;
+  color: #a86dff;
   filter: drop-shadow(0 0 6px rgba(168, 109, 255, 0.7));
   transform: scale(1.2) translateY(-2px);
 }
 
 /* Active pill / indicator dot */
-.bottom-nav a.active::after {
+.bottom-nav a.active::after,
+.bottom-nav button.active::after {
   content: "";
   position: absolute;
   bottom: -6px;

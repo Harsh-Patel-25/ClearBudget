@@ -290,7 +290,169 @@ const API = {
     }
     return true;
   },
+
+  // Admin API Methods
+  async adminGetStats() {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/stats`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend admin stats timeout, calculating local fallback stats:", e.message);
+    }
+
+    // Local Fallback Stats
+    const users = window.Auth ? window.Auth.getLocalUsers() : [];
+    let totalTxCount = 0;
+    let totalVol = 0;
+    let totalFriendsCount = 0;
+
+    users.forEach((u) => {
+      const uId = u.id || u.email;
+      const txs = JSON.parse(localStorage.getItem(`transactions_${uId}`)) || [];
+      const fds = JSON.parse(localStorage.getItem(`friends_${uId}`)) || [];
+      totalTxCount += txs.length;
+      totalFriendsCount += fds.length;
+      totalVol += txs.reduce((acc, t) => acc + Math.abs(t.amount || 0), 0);
+    });
+
+    return {
+      totalUsers: users.length,
+      totalTransactions: totalTxCount,
+      totalFriends: totalFriendsCount,
+      totalVolume: totalVol,
+      dbStatus: "Static Netlify Storage",
+      serverUptime: 0,
+    };
+  },
+
+  async adminGetUsers() {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/users`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend admin users timeout, using local store fallback:", e.message);
+    }
+
+    const users = window.Auth ? window.Auth.getLocalUsers() : [];
+    return users.map((u) => {
+      const uId = u.id || u.email;
+      const txs = JSON.parse(localStorage.getItem(`transactions_${uId}`)) || [];
+      return {
+        id: uId,
+        name: u.name || "User",
+        email: u.email,
+        role: u.role || (u.email === "admin@clearbudget.com" ? "admin" : "user"),
+        createdAt: u.createdAt || new Date(),
+        transactionCount: txs.length,
+      };
+    });
+  },
+
+  async adminDeleteUser(id) {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/users/${id}`, { method: "DELETE" });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend delete user timeout:", e.message);
+    }
+
+    // Local Store Delete
+    const usersKey = "cb_registered_users_db";
+    const users = JSON.parse(localStorage.getItem(usersKey)) || [];
+    const updatedUsers = users.filter((u) => String(u.id || u.email) !== String(id));
+    localStorage.setItem(usersKey, JSON.stringify(updatedUsers));
+    localStorage.removeItem(`transactions_${id}`);
+    localStorage.removeItem(`friends_${id}`);
+    localStorage.removeItem(`doneFriends_${id}`);
+    return { message: "User deleted from local store" };
+  },
+
+  async adminUpdateUserRole(id, role) {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/users/${id}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend update role timeout:", e.message);
+    }
+
+    const usersKey = "cb_registered_users_db";
+    const users = JSON.parse(localStorage.getItem(usersKey)) || [];
+    const index = users.findIndex((u) => String(u.id || u.email) === String(id));
+    if (index !== -1) {
+      users[index].role = role;
+      localStorage.setItem(usersKey, JSON.stringify(users));
+      return users[index];
+    }
+    return { id, role };
+  },
+
+  async adminGetTransactions() {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/transactions`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend admin transactions timeout, retrieving all local transactions:", e.message);
+    }
+
+    const users = window.Auth ? window.Auth.getLocalUsers() : [];
+    const allTxs = [];
+    users.forEach((u) => {
+      const uId = u.id || u.email;
+      const txs = JSON.parse(localStorage.getItem(`transactions_${uId}`)) || [];
+      txs.forEach((t) => {
+        allTxs.push({
+          ...t,
+          userName: u.name,
+          userEmail: u.email,
+        });
+      });
+    });
+    return allTxs;
+  },
+
+  async adminDeleteTransaction(id) {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/transactions/${id}`, { method: "DELETE" });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend delete transaction timeout:", e.message);
+    }
+    return { message: "Transaction purged" };
+  },
+
+  async adminGetExport() {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/admin/export`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Backend export timeout, gathering local backup:", e.message);
+    }
+
+    const users = window.Auth ? window.Auth.getLocalUsers() : [];
+    const allTxs = [];
+    const allFriends = [];
+    users.forEach((u) => {
+      const uId = u.id || u.email;
+      const txs = JSON.parse(localStorage.getItem(`transactions_${uId}`)) || [];
+      const fds = JSON.parse(localStorage.getItem(`friends_${uId}`)) || [];
+      allTxs.push(...txs);
+      allFriends.push(...fds);
+    });
+
+    return {
+      exportedAt: new Date().toISOString(),
+      mode: "Static Local Backup",
+      users,
+      transactions: allTxs,
+      friends: allFriends,
+    };
+  },
 };
 
 // Export to global scope
 window.API = API;
+

@@ -316,6 +316,12 @@
         <button type="submit" class="btn-primary btn-submit" id="btn-submit">
           <span id="btn-text"><i class="fas fa-sign-in-alt"></i> Sign In</span>
         </button>
+
+        <div style="margin-top: 1rem; text-align: center;">
+          <button type="button" class="btn-secondary" onclick="fillAdminCredentials()" style="padding: 0.45rem 1rem; font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;" title="Quick-fill Master Admin Login">
+            <i class="fas fa-user-shield"></i> Quick Admin Login
+          </button>
+        </div>
       </form>
     </div>
 
@@ -330,10 +336,17 @@
   <script>
     // Redirect if already logged in
     if (Auth.isLoggedIn()) {
-      window.location.href = "index.html";
+      window.location.href = Auth.isAdmin() ? "admin.html" : "index.html";
     }
 
     let currentMode = "login";
+
+    function fillAdminCredentials() {
+      switchTab("login");
+      document.getElementById("input-email").value = "admin@clearbudget.com";
+      document.getElementById("input-password").value = "admin123";
+      showToast("Master Admin credentials loaded! Click Sign In.", "info");
+    }
 
     function switchTab(mode) {
       currentMode = mode;
@@ -401,7 +414,14 @@
           const name = document.getElementById("input-name").value.trim();
           await Auth.signup(name, email, password);
         }
-        window.location.href = "index.html";
+        
+        if (Auth.isAdmin()) {
+          showToast("Welcome Admin! Loading control panel...", "success");
+          setTimeout(() => { window.location.href = "admin.html"; }, 600);
+        } else {
+          showToast("Welcome back!", "success");
+          setTimeout(() => { window.location.href = "index.html"; }, 600);
+        }
       } catch (err) {
         showError(err.message || "An unexpected error occurred.");
         btnSubmit.disabled = false;

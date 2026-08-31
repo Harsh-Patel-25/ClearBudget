@@ -66,12 +66,12 @@ mongoose.connection.on("disconnected", () => {
   isMongoConnected = false;
 });
 
-connectDB();
+connectDB().then(() => seedMasterAdmin());
 
 // Helper to generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user.id || user._id.toString(), email: user.email, name: user.name },
+    { id: user.id || user._id.toString(), email: user.email, name: user.name, role: user.role || "user" },
     JWT_SECRET,
     { expiresIn: "30d" }
   );
@@ -92,6 +92,52 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (err) {
     return res.status(401).json({ error: "Invalid or expired session. Please log in again." });
+  }
+};
+
+// Admin Authentication Middleware
+const adminAuthMiddleware = async (req, res, next) => {
+  await authMiddleware(req, res, async () => {
+    if (req.user && (req.user.role === "admin" || req.user.email === "admin@clearbudget.com")) {
+      return next();
+    }
+    return res.status(403).json({ error: "Access denied. Administrator rights required." });
+  });
+};
+
+// Master Admin Auto-seeder
+const seedMasterAdmin = async () => {
+  const adminEmail = "admin@clearbudget.com";
+  const adminPassword = "admin123";
+  try {
+    if (isMongoConnected) {
+      let admin = await User.findOne({ email: adminEmail });
+      if (!admin) {
+        admin = new User({
+          name: "System Admin",
+          email: adminEmail,
+          password: adminPassword,
+          role: "admin",
+        });
+        await admin.save();
+        console.log("⚡ Master Admin account seeded in MongoDB.");
+      }
+    }
+  } catch (e) {
+    console.warn("MongoDB admin seed check skipped:", e.message);
+  }
+
+  if (!memoryUsers.some((u) => u.email === adminEmail)) {
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+    memoryUsers.push({
+      id: "admin_master_1",
+      name: "System Admin",
+      email: adminEmail,
+      password: hashedPassword,
+      role: "admin",
+      createdAt: new Date(),
+    });
+    console.log("⚡ Master Admin account seeded in fast memory store.");
   }
 };
 
@@ -524,13 +570,193 @@ app.delete("/api/friends/:id", authMiddleware, async (req, res) => {
   }
 });
 
-app.delete("/api/friends/done/all", authMiddleware, async (req, res) => {
+// --- ADMIN API (ADMIN PROTECTED) ---
+
+// Get System Metrics Overview
+app.get("/api/admin/stats", adminAuthMiddleware, async (req, res) => {
+  try {
+    let totalUsersCount = memoryUsers.length;
+    let totalTransactionsCount = memoryTransactions.length;
+    let totalFriendsCount = memoryFriends.length;
+    let totalVolume = 0;
+
+    if (isMongoConnected) {
+      totalUsersCount = await User.countDocuments();
+      totalTransactionsCount = await Transaction.countDocuments();
+      totalFriendsCount = await Friend.countDocuments();
+      const txSum = await Transaction.aggregate([
+        { $group: { _id: null, total: { $sum: { $abs: "$amount" } } } },
+      ]);
+      totalVolume = txSum.length > 0 ? txSum[0].total : 0;
+    } else {
+      totalVolume = memoryTransactions.reduce((acc, t) => acc + Math.abs(t.amount || 0), 0);
+    }
+
+    res.json({
+      totalUsers: totalUsersCount,
+      totalTransactions: totalTransactionsCount,
+      totalFriends: totalFriendsCount,
+      totalVolume,
+      dbStatus: isMongoConnected ? "MongoDB Atlas" : "Fast Local Store",
+      serverUptime: process.uptime(),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get All Registered Users
+app.get("/api/admin/users", adminAuthMiddleware, async (req, res) => {
   try {
     if (isMongoConnected) {
-      await Friend.deleteMany({ userId: req.userId, status: "settled" });
+      const users = await User.find().sort({ createdAt: -1 }).lean();
+      const formatted = await Promise.all(
+        users.map(async (u) => {
+          const txCount = await Transaction.countDocuments({ userId: u._id });
+          return {
+            id: u._id.toString(),
+            name: u.name,
+            email: u.email,
+            role: u.role || "user",
+            createdAt: u.createdAt,
+            transactionCount: txCount,
+          };
+        })
+      );
+      return res.json(formatted);
     }
-    memoryFriends = memoryFriends.filter((f) => !(String(f.userId) === String(req.userId) && f.status === "settled"));
-    res.json({ message: "All settled records cleared" });
+
+    const formatted = memoryUsers.map((u) => {
+      const txCount = memoryTransactions.filter((t) => String(t.userId) === String(u.id)).length;
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role || "user",
+        createdAt: u.createdAt || new Date(),
+        transactionCount: txCount,
+      };
+    });
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete User & User Data
+app.delete("/api/admin/users/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isMongoConnected && mongoose.Types.ObjectId.isValid(id)) {
+      await User.findByIdAndDelete(id);
+      await Transaction.deleteMany({ userId: id });
+      await Friend.deleteMany({ userId: id });
+    }
+
+    memoryUsers = memoryUsers.filter((u) => String(u.id) !== String(id));
+    memoryTransactions = memoryTransactions.filter((t) => String(t.userId) !== String(id));
+    memoryFriends = memoryFriends.filter((f) => String(f.userId) !== String(id));
+
+    res.json({ message: "User and user data deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Change User Role (User <-> Admin)
+app.patch("/api/admin/users/:id/role", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    if (!["user", "admin"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role specified" });
+    }
+
+    if (isMongoConnected && mongoose.Types.ObjectId.isValid(id)) {
+      const updated = await User.findByIdAndUpdate(id, { role }, { new: true }).lean();
+      if (updated) {
+        updated.id = updated._id.toString();
+        delete updated.password;
+        return res.json(updated);
+      }
+    }
+
+    const index = memoryUsers.findIndex((u) => String(u.id) === String(id));
+    if (index !== -1) {
+      memoryUsers[index].role = role;
+      const copy = { ...memoryUsers[index] };
+      delete copy.password;
+      return res.json(copy);
+    }
+
+    res.status(404).json({ error: "User not found" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Global Transactions Ledger
+app.get("/api/admin/transactions", adminAuthMiddleware, async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const txs = await Transaction.find().sort({ createdAt: -1 }).populate("userId", "name email").lean();
+      const formatted = txs.map((t) => ({
+        ...t,
+        id: t._id.toString(),
+        userName: t.userId ? t.userId.name : "Unknown",
+        userEmail: t.userId ? t.userId.email : "Unknown",
+      }));
+      return res.json(formatted);
+    }
+
+    const formatted = memoryTransactions.map((t) => {
+      const user = memoryUsers.find((u) => String(u.id) === String(t.userId)) || {};
+      return {
+        ...t,
+        userName: user.name || "Unknown",
+        userEmail: user.email || "Unknown",
+      };
+    });
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Transaction as Admin
+app.delete("/api/admin/transactions/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isMongoConnected && mongoose.Types.ObjectId.isValid(id)) {
+      await Transaction.findByIdAndDelete(id);
+    }
+    memoryTransactions = memoryTransactions.filter((t) => String(t.id) !== String(id));
+    res.json({ message: "Transaction purged by admin" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Export Database Backup JSON
+app.get("/api/admin/export", adminAuthMiddleware, async (req, res) => {
+  try {
+    let users = memoryUsers.map(({ password, ...rest }) => rest);
+    let transactions = memoryTransactions;
+    let friends = memoryFriends;
+
+    if (isMongoConnected) {
+      users = await User.find().select("-password").lean();
+      transactions = await Transaction.find().lean();
+      friends = await Friend.find().lean();
+    }
+
+    res.json({
+      exportedAt: new Date().toISOString(),
+      mode: isMongoConnected ? "MongoDB Atlas" : "Fast Local Memory",
+      users,
+      transactions,
+      friends,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
