@@ -38,6 +38,11 @@
   transition: color 0.25s ease, transform 0.2s ease;
   letter-spacing: 0.02em;
   font-weight: 500;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .bottom-nav a i,
@@ -70,7 +75,7 @@
 .bottom-nav a.active,
 .bottom-nav button.active {
   color: #a86dff;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .bottom-nav a.active i,
@@ -79,24 +84,10 @@
 .bottom-nav button.active svg {
   fill: #a86dff;
   color: #a86dff;
-  filter: drop-shadow(0 0 6px rgba(168, 109, 255, 0.7));
-  transform: scale(1.2) translateY(-2px);
+  transform: scale(1.15) translateY(-1px);
 }
 
-/* Active pill / indicator dot */
-.bottom-nav a.active::after,
-.bottom-nav button.active::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 3px;
-  background: #a86dff;
-  border-radius: 3px;
-  box-shadow: 0 0 8px rgba(168, 109, 255, 0.6);
-}
+/* No active indicator line */
 
 /* ========================================
    ClearBudget - Universal Top Navigation Header
@@ -177,6 +168,10 @@
   outline: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 0 12px rgba(168, 109, 255, 0.15);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .nav-calendar-btn:hover {
@@ -226,6 +221,10 @@ body {
   outline: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 0 12px rgba(168, 109, 255, 0.15);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .profile-icon-btn:hover,
@@ -348,6 +347,11 @@ body {
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .profile-menu-item:hover {
