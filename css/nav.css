@@ -219,6 +219,8 @@ body {
   justify-content: center;
   cursor: pointer;
   outline: none;
+  overflow: hidden;
+  padding: 0;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 0 12px rgba(168, 109, 255, 0.15);
   -webkit-tap-highlight-color: transparent;
@@ -272,12 +274,18 @@ body {
 }
 
 .profile-avatar-large {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(168, 109, 255, 0.4);
   font-size: 2.2rem;
   color: var(--primary, #a86dff);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: rgba(168, 109, 255, 0.1);
 }
 
 .profile-menu-user-details {

@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#a86dff" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="apple-touch-icon" href="192.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ClearBudget Settings – Manage your profile, preferences, currency, notifications and account." />
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <title>ClearBudget – Settings</title>
+    <style>
+      .settings-page {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+      }
+
+      .settings-hero {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+
+      .settings-hero-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-md);
+        background: rgba(168, 109, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: var(--primary);
+        flex-shrink: 0;
+        box-shadow: 0 0 20px rgba(168, 109, 255, 0.2);
+      }
+
+      .settings-hero h1 {
+        font-size: 1.7rem;
+        margin: 0;
+      }
+
+      .settings-hero p {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        margin: 0.15rem 0 0;
+      }
+
+      .settings-section {
+        margin-bottom: 1.5rem;
+        background: var(--bg-card-glass);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        overflow: hidden;
+        transition: border-color 0.25s;
+      }
+
+      .settings-section:hover {
+        border-color: var(--border-glow);
+      }
+
+      .settings-section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.3rem 0.9rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .section-header-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
+        background: rgba(168, 109, 255, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        color: var(--primary);
+        flex-shrink: 0;
+      }
+
+      .settings-section-header h2 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-main);
+        letter-spacing: 0.01em;
+        flex: 1;
+      }
+
+      .settings-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.3rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s;
+      }
+
+      .settings-row:last-child {
+        border-bottom: none;
+      }
+
+      .settings-row:hover {
+        background: rgba(168, 109, 255, 0.04);
+      }
+
+      .row-label {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .row-label strong {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+
+      .row-label small {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+      }
+
+      .row-control {
+        flex-shrink: 0;
+      }
+
+      .row-control input[type="text"],
+      .row-control input[type="email"],
+      .row-control select {
+        width: 200px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.88rem;
+      }
+
+      @media (max-width: 520px) {
+        .settings-row { flex-wrap: wrap; }
+        .row-control input[type="text"],
+        .row-control input[type="email"],
+        .row-control select { width: 100%; }
+      }
+
+      .cb-toggle {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+
+      .cb-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+      }
+
+      .cb-toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+
+      .cb-toggle-slider::before {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        left: 2px;
+        top: 2px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .cb-toggle input:checked + .cb-toggle-slider {
+        background: rgba(168, 109, 255, 0.25);
+        border-color: var(--primary);
+      }
+
+      .cb-toggle input:checked + .cb-toggle-slider::before {
+        transform: translateX(20px);
+        background: var(--primary);
+        box-shadow: 0 0 8px rgba(168, 109, 255, 0.6);
+      }
+
+      .settings-save-bar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0.8rem 1.3rem 1.1rem;
+      }
+
+      .settings-section.danger {
+        border-color: rgba(255, 93, 117, 0.2);
+      }
+
+      .settings-section.danger .settings-section-header {
+        border-bottom-color: rgba(255, 93, 117, 0.15);
+      }
+
+      .settings-section.danger .section-header-icon {
+        background: rgba(255, 93, 117, 0.12);
+        color: var(--expense);
+      }
+
+      .settings-section.danger:hover {
+        border-color: rgba(255, 93, 117, 0.4);
+      }
+
+      .avatar-preview {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        object-fit: cover;
+        background: rgba(168, 109, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: var(--primary);
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+
+      .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+
+      .currency-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.5rem;
+        padding: 0.75rem 1.3rem 1.1rem;
+      }
+
+      .currency-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.15rem;
+        padding: 0.6rem 0.4rem;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.75rem;
+        color: var(--text-sub);
+      }
+
+      .currency-chip .symbol {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .currency-chip:hover {
+        background: rgba(168, 109, 255, 0.1);
+        border-color: var(--primary);
+        color: var(--text-main);
+      }
+
+      .currency-chip.active {
+        background: rgba(168, 109, 255, 0.18);
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: 0 0 12px rgba(168, 109, 255, 0.25);
+      }
+
+      .currency-chip.active .symbol {
+        color: var(--primary);
+      }
+
+      .version-badge {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 0.5rem 0 0.25rem;
+      }
+
+      /* ── Install App Section ───────────────────────────────── */
+      .settings-section.install-section {
+        border-color: rgba(78, 225, 193, 0.2);
+      }
+      .settings-section.install-section:hover {
+        border-color: rgba(78, 225, 193, 0.45);
+      }
+      .install-icon {
+        background: rgba(78, 225, 193, 0.12) !important;
+        color: var(--income) !important;
+      }
+
+      .btn-install {
+        background: linear-gradient(135deg, #4ee1c1, #1fc09c);
+        color: #0a1f1a;
+        border: none;
+        padding: 0.55rem 1.1rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        box-shadow: 0 4px 16px rgba(78, 225, 193, 0.35);
+        transition: var(--transition);
+        white-space: nowrap;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .btn-install:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 22px rgba(78, 225, 193, 0.55);
+      }
+
+      .btn-install:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .btn-install:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .ios-steps {
+        margin: 0.6rem 0 0 1rem;
+        padding: 0;
+        color: var(--text-sub);
+        font-size: 0.82rem;
+        line-height: 1.9;
+      }
+
+      .ios-steps li { padding-left: 0.2rem; }
+      .ios-steps strong { color: var(--text-main); }
+
+      .install-badge-done {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: var(--radius-md);
+        background: rgba(78, 225, 193, 0.12);
+        border: 1px solid rgba(78, 225, 193, 0.35);
+        color: var(--income);
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+    </style>
+
+  </head>
+  <body>
+    <main class="settings-page">
+      <div class="settings-hero fade-in">
+        <div class="settings-hero-icon">
+          <i class="fas fa-sliders-h"></i>
+        </div>
+        <div>
+          <h1>Settings</h1>
+          <p>Manage your profile, preferences &amp; account</p>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <section class="settings-section fade-in" id="section-profile">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-user"></i></div>
+          <h2>Profile</h2>
+        </div>
+
+        <div class="settings-row" id="row-avatar">
+          <div class="row-label">
+            <strong>Profile Picture</strong>
+            <small>Enter an image URL or upload a file</small>
+          </div>
+          <div class="row-control" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <div class="avatar-preview" id="avatarPreview">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.4rem;">
+              <input type="text" id="avatarUrlInput" placeholder="Paste image URL…" style="width:180px; font-size:0.82rem;" />
+              <label class="btn-secondary" style="padding:0.4rem 0.7rem; font-size:0.8rem; cursor:pointer; justify-content:center;">
+                <i class="fas fa-upload"></i> Upload
+                <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-row" id="row-name">
+          <div class="row-label">
+            <strong>Display Name</strong>
+            <small>Name shown across the app</small>
+          </div>
+          <div class="row-control">
+            <input type="text" id="displayNameInput" placeholder="Your name" />
+          </div>
+        </div>
+
+        <div class="settings-row" id="row-email">
+          <div class="row-label">
+            <strong>Email</strong>
+            <small>Your account email address</small>
+          </div>
+          <div class="row-control">
+            <input type="email" id="emailInput" placeholder="—" readonly style="opacity:0.55; cursor:not-allowed;" />
+          </div>
+        </div>
+
+        <div class="settings-save-bar">
+          <button class="btn-primary" id="saveProfileBtn" onclick="saveProfile()">
+            <i class="fas fa-check"></i> Save Profile
+          </button>
+        </div>
+      </section>
+
+      <!-- Currency -->
+      <section class="settings-section fade-in" id="section-currency">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-coins"></i></div>
+          <h2>Currency</h2>
+        </div>
+        <div class="currency-grid" id="currencyGrid"></div>
+        <div class="settings-save-bar" style="padding-top:0;">
+          <button class="btn-primary" onclick="saveCurrency()">
+            <i class="fas fa-check"></i> Save Currency
+          </button>
+        </div>
+      </section>
+
+      <!-- Display Preferences -->
+      <section class="settings-section fade-in" id="section-display">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-palette"></i></div>
+          <h2>Display</h2>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Compact Mode</strong>
+            <small>Reduce spacing in transaction lists</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="compactMode" onchange="saveDisplay()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Show Running Balance</strong>
+            <small>Display running total in transaction history</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="showBalance" onchange="saveDisplay()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Animations</strong>
+            <small>Enable micro-animations and transitions</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="enableAnimations" onchange="saveDisplay()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Default Page</strong>
+            <small>Page to open after login</small>
+          </div>
+          <div class="row-control">
+            <select id="defaultPage" onchange="saveDisplay()" style="width:160px;">
+              <option value="index.html">Dashboard</option>
+              <option value="transaction.html">Transactions</option>
+              <option value="add.html">Add Transaction</option>
+              <option value="insight.html">Insights</option>
+              <option value="friend.html">Friends</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section class="settings-section fade-in" id="section-notifications">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-bell"></i></div>
+          <h2>Notifications</h2>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Transaction Alerts</strong>
+            <small>In-app toast on every transaction save</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="notifTransactions" onchange="saveNotif()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Monthly Summary Reminder</strong>
+            <small>Remind me to review at month end</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="notifMonthly" onchange="saveNotif()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Budget Limit Warning</strong>
+            <small>Alert when expenses exceed a threshold</small>
+          </div>
+          <div class="row-control">
+            <label class="cb-toggle">
+              <input type="checkbox" id="notifBudget" onchange="saveNotif()" />
+              <span class="cb-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Management -->
+      <section class="settings-section fade-in" id="section-data">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-database"></i></div>
+          <h2>Data Management</h2>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Export Transactions</strong>
+            <small>Download your data as a CSV file</small>
+          </div>
+          <div class="row-control">
+            <button class="btn-secondary" onclick="exportCSV()" style="padding:0.5rem 0.9rem; font-size:0.85rem;">
+              <i class="fas fa-download"></i> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Clear Cached Data</strong>
+            <small>Remove local cached transaction data</small>
+          </div>
+          <div class="row-control">
+            <button class="btn-secondary" onclick="clearCache()" style="padding:0.5rem 0.9rem; font-size:0.85rem;">
+              <i class="fas fa-broom"></i> Clear Cache
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Install App -->
+      <section class="settings-section install-section fade-in" id="section-install">
+        <div class="settings-section-header">
+          <div class="section-header-icon install-icon"><i class="fas fa-mobile-alt"></i></div>
+          <h2>Install App</h2>
+        </div>
+
+        <!-- Default: waiting for prompt -->
+        <div class="settings-row" id="install-row-default">
+          <div class="row-label">
+            <strong>Add to Home Screen</strong>
+            <small>Install ClearBudget as an app on your device for quick access</small>
+          </div>
+          <div class="row-control">
+            <button class="btn-install" id="installBtn" onclick="installApp()" disabled>
+              <i class="fas fa-spinner fa-spin"></i> Checking…
+            </button>
+          </div>
+        </div>
+
+        <!-- iOS instructions (shown only on Safari/iOS) -->
+        <div class="settings-row" id="install-row-ios" style="display:none;">
+          <div class="row-label" style="flex:1;">
+            <strong>Install on iPhone / iPad</strong>
+            <small>Follow these steps in Safari:</small>
+            <ol class="ios-steps">
+              <li>Tap the <strong>Share</strong> button <i class="fas fa-share-from-square" style="color:var(--primary);"></i> at the bottom of Safari</li>
+              <li>Scroll down and tap <strong>&ldquo;Add to Home Screen&rdquo;</strong></li>
+              <li>Tap <strong>Add</strong> in the top-right corner</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Already installed state -->
+        <div class="settings-row" id="install-row-done" style="display:none;">
+          <div class="row-label">
+            <strong>App Installed</strong>
+            <small>ClearBudget is already installed on this device</small>
+          </div>
+          <div class="row-control">
+            <span class="install-badge-done"><i class="fas fa-check-circle"></i> Installed</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Danger Zone -->
+      <section class="settings-section danger fade-in" id="section-danger">
+        <div class="settings-section-header">
+          <div class="section-header-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <h2>Danger Zone</h2>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Sign Out</strong>
+            <small>Log out of your current session</small>
+          </div>
+          <div class="row-control">
+            <button class="btn-danger" onclick="Auth.logout()" style="padding:0.5rem 0.9rem; font-size:0.85rem;">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-label">
+            <strong>Reset All Settings</strong>
+            <small>Restore defaults for display &amp; notifications</small>
+          </div>
+          <div class="row-control">
+            <button class="btn-danger" onclick="resetSettings()" style="padding:0.5rem 0.9rem; font-size:0.85rem;">
+              <i class="fas fa-undo"></i> Reset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <p class="version-badge">ClearBudget &middot; v1.0.0 &middot; Built with &#128156;</p>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav" aria-label="Main Navigation">
+      <a href="index.html" class="nav-item" id="nav-home">
+        <i class="fas fa-home nav-icon"></i><span>Home</span>
+      </a>
+      <a href="transaction.html" class="nav-item" id="nav-tx">
+        <i class="fas fa-list-ul nav-icon"></i><span>History</span>
+      </a>
+      <a href="add.html" class="nav-item nav-add" id="nav-add">
+        <i class="fas fa-plus nav-icon"></i><span>Add</span>
+      </a>
+      <a href="insight.html" class="nav-item" id="nav-insight">
+        <i class="fas fa-chart-pie nav-icon"></i><span>Insights</span>
+      </a>
+      <a href="friend.html" class="nav-item" id="nav-friends">
+        <i class="fas fa-user-friends nav-icon"></i><span>Friends</span>
+      </a>
+    </nav>
+
+    <script>
+      const SETTINGS_KEY = 'cb_settings';
+      const AVATAR_KEY   = 'cb_avatar';
+      const CURRENCY_KEY = 'cb_currency';
+
+      const CURRENCIES = [
+        { code: 'INR',  symbol: '\u20B9',  name: 'Indian Rupee' },
+        { code: 'USD',  symbol: '$',   name: 'US Dollar' },
+        { code: 'EUR',  symbol: '\u20AC',  name: 'Euro' },
+        { code: 'GBP',  symbol: '\u00A3',  name: 'British Pound' },
+        { code: 'JPY',  symbol: '\u00A5',  name: 'Japanese Yen' },
+        { code: 'CAD',  symbol: 'CA$', name: 'Canadian Dollar' },
+        { code: 'AUD',  symbol: 'A$',  name: 'Australian Dollar' },
+        { code: 'CHF',  symbol: 'Fr',  name: 'Swiss Franc' },
+        { code: 'CNY',  symbol: '\u00A5',  name: 'Chinese Yuan' },
+        { code: 'AED',  symbol: '\u062F.\u0625', name: 'UAE Dirham' },
+        { code: 'SGD',  symbol: 'S$',  name: 'Singapore Dollar' },
+        { code: 'BTC',  symbol: '\u20BF',  name: 'Bitcoin' },
+      ];
+
+      function getSettings() {
+        try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; }
+        catch { return {}; }
+      }
+
+      function saveSettings(patch) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...getSettings(), ...patch }));
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const user = Auth.getUser();
+        if (!user) return;
+
+        document.getElementById('displayNameInput').value = user.name || '';
+        document.getElementById('emailInput').value       = user.email || '';
+        loadAvatar();
+        buildCurrencyGrid();
+
+        const s = getSettings();
+        document.getElementById('compactMode').checked      = !!s.compactMode;
+        document.getElementById('showBalance').checked      = s.showBalance !== false;
+        document.getElementById('enableAnimations').checked = s.enableAnimations !== false;
+        const defPage = document.getElementById('defaultPage');
+        if (s.defaultPage) defPage.value = s.defaultPage;
+
+        document.getElementById('notifTransactions').checked = s.notifTransactions !== false;
+        document.getElementById('notifMonthly').checked      = !!s.notifMonthly;
+        document.getElementById('notifBudget').checked       = !!s.notifBudget;
+
+        applyCompactMode(s.compactMode);
+      });
+
+      /* Avatar */
+      function loadAvatar() {
+        const url = localStorage.getItem(AVATAR_KEY);
+        const preview = document.getElementById('avatarPreview');
+        const urlInput = document.getElementById('avatarUrlInput');
+        if (url) {
+          urlInput.value = url;
+          preview.innerHTML = '<img src="' + url + '" alt="Avatar" onerror="this.parentElement.innerHTML=\'<i class=\\\'fas fa-user-circle\\\'></i>\'" />';
+        }
+      }
+
+      document.getElementById('avatarUrlInput').addEventListener('input', function () {
+        const url = this.value.trim();
+        const preview = document.getElementById('avatarPreview');
+        if (url) {
+          preview.innerHTML = '<img src="' + url + '" alt="Avatar" onerror="this.parentElement.innerHTML=\'<i class=\\\'fas fa-user-circle\\\'></i>\'" />';
+        } else {
+          preview.innerHTML = '<i class="fas fa-user-circle"></i>';
+        }
+      });
+
+      document.getElementById('avatarFileInput').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const dataUrl = ev.target.result;
+          document.getElementById('avatarUrlInput').value = '';
+          document.getElementById('avatarPreview').innerHTML = '<img src="' + dataUrl + '" alt="Avatar" />';
+          localStorage.setItem(AVATAR_KEY, dataUrl);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function saveProfile() {
+        const name = document.getElementById('displayNameInput').value.trim();
+        if (!name) { showToast('error', 'Name cannot be empty.'); return; }
+
+        const avatarUrl = document.getElementById('avatarUrlInput').value.trim();
+        if (avatarUrl) localStorage.setItem(AVATAR_KEY, avatarUrl);
+
+        const user = Auth.getUser();
+        if (user) {
+          user.name = name;
+          localStorage.setItem(Auth.USER_KEY, JSON.stringify(user));
+          Auth.saveLocalUser({ ...user, name });
+        }
+
+        // Instantly refresh navbar avatar without full reload
+        refreshNavbarAvatar();
+        showToast('success', 'Profile saved successfully!');
+      }
+
+      function refreshNavbarAvatar() {
+        const savedAvatar = localStorage.getItem(AVATAR_KEY) || '';
+        const imgTag = savedAvatar
+          ? '<img src="' + savedAvatar + '" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+          : '<i class="fas fa-user-circle"></i>';
+
+        // Navbar button icon
+        var profileBtn = document.getElementById('userProfileBtn');
+        if (profileBtn) profileBtn.innerHTML = imgTag;
+
+        // Dropdown header avatar
+        var avatarLarge = document.querySelector('.profile-avatar-large');
+        if (avatarLarge) avatarLarge.innerHTML = imgTag;
+      }
+
+      /* Currency */
+      function buildCurrencyGrid() {
+        const current = localStorage.getItem(CURRENCY_KEY) || 'INR';
+        const grid = document.getElementById('currencyGrid');
+        grid.innerHTML = CURRENCIES.map(function(c) {
+          return '<button class="currency-chip ' + (c.code === current ? 'active' : '') + '" data-code="' + c.code + '" onclick="selectCurrency(\'' + c.code + '\')" title="' + c.name + '">' +
+            '<span class="symbol">' + c.symbol + '</span><span>' + c.code + '</span></button>';
+        }).join('');
+      }
+
+      function selectCurrency(code) {
+        document.querySelectorAll('.currency-chip').forEach(function(c) {
+          c.classList.toggle('active', c.dataset.code === code);
+        });
+      }
+
+      function saveCurrency() {
+        const active = document.querySelector('.currency-chip.active');
+        if (!active) return;
+        localStorage.setItem(CURRENCY_KEY, active.dataset.code);
+        showToast('success', 'Currency set to ' + active.dataset.code);
+      }
+
+      /* Display */
+      function saveDisplay() {
+        const patch = {
+          compactMode:      document.getElementById('compactMode').checked,
+          showBalance:      document.getElementById('showBalance').checked,
+          enableAnimations: document.getElementById('enableAnimations').checked,
+          defaultPage:      document.getElementById('defaultPage').value,
+        };
+        saveSettings(patch);
+        applyCompactMode(patch.compactMode);
+        showToast('success', 'Display preferences updated.');
+      }
+
+      function applyCompactMode(on) {
+        document.body.classList.toggle('compact-mode', !!on);
+      }
+
+      /* Notifications */
+      function saveNotif() {
+        saveSettings({
+          notifTransactions: document.getElementById('notifTransactions').checked,
+          notifMonthly:      document.getElementById('notifMonthly').checked,
+          notifBudget:       document.getElementById('notifBudget').checked,
+        });
+        showToast('info', 'Notification preferences saved.');
+      }
+
+      /* Export CSV */
+      function exportCSV() {
+        const user = Auth.getUser();
+        if (!user) return;
+        const txKey = 'transactions_' + (user.id || user.email);
+        let txns = [];
+        try { txns = JSON.parse(localStorage.getItem(txKey)) || []; } catch {}
+        if (!txns.length) { showToast('warning', 'No transactions to export.'); return; }
+
+        const header = 'Date,Type,Category,Note,Amount';
+        const rows   = txns.map(function(t) {
+          return '"' + (t.date || '') + '","' + (t.type || '') + '","' + (t.category || '') + '","' + (t.note || '').replace(/"/g,'""') + '","' + (t.amount || 0) + '"';
+        });
+        const csv  = [header].concat(rows).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = 'ClearBudget_' + new Date().toISOString().slice(0,10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('success', 'CSV downloaded!');
+      }
+
+      /* Clear Cache */
+      function clearCache() {
+        ['cb_settings_cache', 'cb_chart_cache'].forEach(function(k) {
+          localStorage.removeItem(k);
+        });
+        showToast('success', 'Cache cleared.');
+      }
+
+      /* Reset */
+      function resetSettings() {
+        if (confirm('Reset all settings to defaults?')) {
+          localStorage.removeItem(SETTINGS_KEY);
+          location.reload();
+        }
+      }
+
+      /* Toast helper */
+      function showToast(type, msg) {
+        if (window.CbToast && CbToast.show) {
+          CbToast.show(type, msg);
+          return;
+        }
+        var c = document.getElementById('_inline_toast_wrap');
+        if (!c) {
+          c = document.createElement('div');
+          c.id = '_inline_toast_wrap';
+          c.style.cssText = 'position:fixed;top:1.2rem;right:1.2rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;';
+          document.body.appendChild(c);
+        }
+        var colors = { success:'#4ee1c1', error:'#ff5d75', warning:'#f59e0b', info:'#a86dff' };
+        var icons  = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
+        var t = document.createElement('div');
+        t.style.cssText = 'background:rgba(29,19,41,0.97);border:1px solid ' + (colors[type]||colors.info) + ';' +
+          'border-radius:10px;padding:0.75rem 1rem;color:#f3edff;font-size:0.9rem;' +
+          'display:flex;align-items:center;gap:0.5rem;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:320px;';
+        t.innerHTML = '<i class="fas ' + (icons[type]||icons.info) + '" style="color:' + (colors[type]||colors.info) + ';font-size:1.1rem;"></i> ' + msg;
+        c.appendChild(t);
+        setTimeout(function() { t.remove(); }, 3500);
+      }
+
+      /* ============================================================
+         PWA Install Logic
+         ============================================================ */
+      var _deferredPrompt = null;
+      var _isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      var _isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
+                                 || window.navigator.standalone === true;
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function (err) {
+            console.warn('SW registration failed:', err);
+          });
+        });
+      }
+
+      // Capture the install prompt before it disappears
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        _deferredPrompt = e;
+        updateInstallUI('installable');
+      });
+
+      // Fired when user installs from our button
+      window.addEventListener('appinstalled', function () {
+        _deferredPrompt = null;
+        updateInstallUI('installed');
+        showToast('success', 'ClearBudget installed successfully!');
+      });
+
+      function updateInstallUI(state) {
+        var rowDefault = document.getElementById('install-row-default');
+        var rowIOS     = document.getElementById('install-row-ios');
+        var rowDone    = document.getElementById('install-row-done');
+        var btn        = document.getElementById('installBtn');
+
+        // Hide all first
+        rowDefault.style.display = 'none';
+        rowIOS.style.display     = 'none';
+        rowDone.style.display    = 'none';
+
+        if (state === 'installed') {
+          rowDone.style.display = 'flex';
+        } else if (state === 'ios') {
+          rowIOS.style.display = 'flex';
+        } else if (state === 'installable') {
+          rowDefault.style.display = 'flex';
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-download"></i> Install App';
+        } else {
+          // not supported / unknown
+          rowDefault.style.display = 'flex';
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-ban"></i> Not Available';
+        }
+      }
+
+      function installApp() {
+        if (!_deferredPrompt) return;
+        _deferredPrompt.prompt();
+        _deferredPrompt.userChoice.then(function (choice) {
+          if (choice.outcome === 'accepted') {
+            updateInstallUI('installed');
+            showToast('success', 'App installed! Check your home screen.');
+          } else {
+            showToast('info', 'Installation cancelled.');
+          }
+          _deferredPrompt = null;
+        });
+      }
+
+      // Set initial state on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        if (_isInStandaloneMode) {
+          updateInstallUI('installed');
+        } else if (_isIOS) {
+          updateInstallUI('ios');
+        } else {
+          // Will be updated to 'installable' when beforeinstallprompt fires
+          // or stay as 'unavailable' if browser doesn't support it
+          setTimeout(function () {
+            if (!_deferredPrompt && !_isInStandaloneMode) {
+              updateInstallUI('unavailable');
+            }
+          }, 2000);
+        }
+      });
+    </script>
+  </body>
+</html>

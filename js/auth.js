@@ -226,15 +226,22 @@ const Auth = {
       wrapper.className = "user-profile-dropdown-wrapper";
 
       const displayName = user.name || (user.email ? user.email.split("@")[0] : "User");
+      const savedAvatar = localStorage.getItem('cb_avatar') || '';
+      const avatarBtnHtml = savedAvatar
+        ? `<img src="${savedAvatar}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/><i class="fas fa-user-circle" style="display:none;"></i>`
+        : `<i class="fas fa-user-circle"></i>`;
+      const avatarLargeHtml = savedAvatar
+        ? `<img src="${savedAvatar}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/><i class="fas fa-user-circle" style="display:none;"></i>`
+        : `<i class="fas fa-user-circle"></i>`;
 
       wrapper.innerHTML = `
         <button type="button" class="profile-icon-btn" id="userProfileBtn" aria-label="User Profile Menu" aria-expanded="false" title="${displayName}">
-          <i class="fas fa-user-circle"></i>
+          ${avatarBtnHtml}
         </button>
         <div class="profile-dropdown-menu" id="userProfileMenu" aria-hidden="true">
           <div class="profile-menu-header">
             <div class="profile-avatar-large">
-              <i class="fas fa-user-circle"></i>
+              ${avatarLargeHtml}
             </div>
             <div class="profile-menu-user-details">
               <div class="profile-menu-name">${displayName}</div>
@@ -252,6 +259,10 @@ const Auth = {
                 <span>Admin Dashboard</span>
               </a>
             ` : ''}
+            <a href="setting.html" class="profile-menu-item">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+            </a>
             <button type="button" onclick="Auth.logout()" class="profile-menu-item logout-item">
               <i class="fas fa-sign-out-alt"></i>
               <span>Logout</span>
