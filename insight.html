@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="js/auth.js"></script>
     <style>
       .toggle-container {
@@ -459,7 +459,7 @@
           const cardBg = [22, 27, 38];
 
           // ── Page Background ──
-          doc.setFillColor(...darkBg);
+          doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
           doc.rect(0, 0, pageW, pageH, 'F');
 
           // ── Header Gradient Bar ──
@@ -481,7 +481,7 @@
           doc.text("Monthly Transaction Report", margin, 24);
 
           // ── Date Range on header ──
-          const dateStr = `${formatDateShort(start)}  –  ${formatDateShort(end)}`;
+          const dateStr = `${formatDateShort(start)}  to  ${formatDateShort(end)}`;
           doc.setFontSize(10);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(255, 255, 255);
@@ -501,32 +501,32 @@
 
           // Income card
           doc.setFillColor(16, 45, 35);
-          doc.roundedRect(margin, y, cardW, cardH, 3, 3, 'F');
+          doc.rect(margin, y, cardW, cardH, 'F');
           doc.setFontSize(8);
           doc.setTextColor(16, 185, 129);
           doc.setFont("helvetica", "normal");
           doc.text("Total Income", margin + 6, y + 10);
           doc.setFontSize(14);
           doc.setFont("helvetica", "bold");
-          doc.text(`₹${totalIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, margin + 6, y + 21);
+          doc.text(`Rs.${totalIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, margin + 6, y + 21);
 
           // Expense card
           const card2X = margin + cardW + 5;
           doc.setFillColor(43, 18, 28);
-          doc.roundedRect(card2X, y, cardW, cardH, 3, 3, 'F');
+          doc.rect(card2X, y, cardW, cardH, 'F');
           doc.setFontSize(8);
           doc.setTextColor(244, 63, 94);
           doc.setFont("helvetica", "normal");
           doc.text("Total Expenses", card2X + 6, y + 10);
           doc.setFontSize(14);
           doc.setFont("helvetica", "bold");
-          doc.text(`₹${totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card2X + 6, y + 21);
+          doc.text(`Rs.${totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card2X + 6, y + 21);
 
           // Net card
           const card3X = card2X + cardW + 5;
           const net = totalIncome - totalExpense;
           doc.setFillColor(20, 25, 50);
-          doc.roundedRect(card3X, y, cardW, cardH, 3, 3, 'F');
+          doc.rect(card3X, y, cardW, cardH, 'F');
           doc.setFontSize(8);
           doc.setTextColor(primaryR, primaryG, primaryB);
           doc.setFont("helvetica", "normal");
@@ -535,7 +535,7 @@
           doc.setFont("helvetica", "bold");
           if (net >= 0) doc.setTextColor(16, 185, 129);
           else doc.setTextColor(244, 63, 94);
-          doc.text(`₹${net.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card3X + 6, y + 21);
+          doc.text(`Rs.${net.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card3X + 6, y + 21);
 
           y += cardH + 10;
 
@@ -568,11 +568,11 @@
               return [
                 (idx + 1).toString(),
                 dateFormatted,
-                timeFormatted !== "Invalid Date" ? timeFormatted : "—",
-                tx.name || "—",
-                tx.thingType || tx.category || "—",
+                timeFormatted !== "Invalid Date" ? timeFormatted : "-",
+                tx.name || "-",
+                tx.thingType || tx.category || "-",
                 isExpense ? "Expense" : "Income",
-                `₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`,
+                `Rs.${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`,
               ];
             });
 
@@ -633,7 +633,7 @@
               },
               didDrawPage: function (data) {
                 // Draw background on new pages
-                doc.setFillColor(...darkBg);
+                doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
                 doc.rect(0, 0, pageW, pageH, 'F');
 
                 // Redraw table content on the page (autoTable handles this)
@@ -641,7 +641,7 @@
                 doc.setFontSize(7);
                 doc.setTextColor(100, 116, 139);
                 doc.text(
-                  "ClearBudget – Generated automatically",
+                  "ClearBudget - Generated automatically",
                   pageW / 2,
                   pageH - 8,
                   { align: "center" }
@@ -660,7 +660,7 @@
           doc.setFontSize(7);
           doc.setTextColor(100, 116, 139);
           doc.text(
-            "ClearBudget – Generated automatically",
+            "ClearBudget - Generated automatically",
             pageW / 2,
             pageH - 8,
             { align: "center" }
