@@ -409,7 +409,7 @@
         avgPerDayEl.textContent = `₹${(totalExpenses / daysInMonth).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
       }
 
-      // ── PDF Download ─────────────────────────────────────────
+      // ── PDF Download (Business / Corporate Financial Statement) ──────
       async function downloadPdfReport() {
         const btn = document.getElementById("downloadPdfBtn");
         btn.classList.add("generating");
@@ -436,12 +436,16 @@
 
           var totalIncome = 0, totalExpense = 0;
           var categoryTotals = {};
+          var categoryCounts = {};
+
           periodTx.forEach(function(tx) {
             if (tx.amount >= 0) totalIncome += tx.amount;
             else totalExpense += Math.abs(tx.amount);
+            
+            var cat = tx.thingType || tx.category || "General";
             if (tx.amount < 0) {
-              var cat = tx.thingType || tx.category || "Other";
               categoryTotals[cat] = (categoryTotals[cat] || 0) + Math.abs(tx.amount);
+              categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
             }
           });
           var net = totalIncome - totalExpense;
@@ -449,7 +453,8 @@
 
           // User details
           var currentUser = window.Auth ? window.Auth.getUser() : null;
-          var accountHolder = currentUser ? (currentUser.name || currentUser.email || "Personal Account") : "Personal Account";
+          var accountHolder = currentUser ? (currentUser.name || currentUser.email || "Primary Account Holder") : "Primary Account Holder";
+          var userEmail = currentUser && currentUser.email ? currentUser.email : "N/A";
 
           var { jsPDF } = window.jspdf;
           var doc = new jsPDF('p', 'mm', 'a4');
@@ -458,215 +463,234 @@
           var m = 16;
           var contentW = pw - m * 2;
 
-          // Set PDF Document Properties
+          // Document Metadata
           doc.setProperties({
-            title: `ClearBudget Statement - ${reportMonth} ${filterYear}`,
-            subject: 'Monthly Financial Transaction Report',
-            author: 'ClearBudget',
-            creator: 'ClearBudget Financial Engine'
+            title: `Financial Statement - ${reportMonth} ${filterYear}`,
+            subject: 'Official Business Financial Statement',
+            author: 'ClearBudget Enterprise System',
+            creator: 'ClearBudget Reporting Engine'
           });
 
-          // Color palette
-          var indigo = [79, 70, 229];
-          var indigoLight = [99, 102, 241];
-          var green = [5, 150, 105];
-          var greenBg = [236, 253, 245];
-          var red = [220, 38, 38];
-          var redBg = [254, 242, 242];
-          var indigoBg = [238, 242, 255];
-          var dark = [17, 24, 39];
-          var gray600 = [75, 85, 99];
-          var gray400 = [156, 163, 175];
-          var gray300 = [209, 213, 219];
-          var gray100 = [243, 244, 246];
+          // Monochrome Corporate Palette
+          var black = [0, 0, 0];
+          var darkGray = [50, 50, 50];
+          var midGray = [100, 100, 100];
+          var lightBorder = [180, 180, 180];
+          var headerBg = [245, 245, 245];
           var white = [255, 255, 255];
-          var catColors = [[99,102,241],[236,72,153],[245,158,11],[16,185,129],[239,68,68],[14,165,233],[168,85,247],[20,184,166]];
+
+          var y = m;
 
           // ================================================================
-          //  HEADER - Executive Styling
+          //  LETTERHEAD HEADER
           // ================================================================
-          doc.setFillColor(indigo[0], indigo[1], indigo[2]);
-          doc.rect(0, 0, pw, 34, 'F');
-          doc.setFillColor(indigoLight[0], indigoLight[1], indigoLight[2]);
-          doc.rect(0, 34, pw, 3, 'F');
-
-          // Brand Title
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(22);
-          doc.setTextColor(255, 255, 255);
-          doc.text("CLEARBUDGET", m, 15);
+          doc.setFontSize(18);
+          doc.setTextColor(black[0], black[1], black[2]);
+          doc.text("CLEARBUDGET", m, y + 2);
 
-          // Sub-badge
-          doc.setFontSize(7.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(190, 190, 255);
-          doc.text("MONTHLY FINANCIAL STATEMENT", m, 22);
-
-          // Period label on right
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(12);
-          doc.setTextColor(255, 255, 255);
-          doc.text(reportMonth.toUpperCase() + " " + filterYear, pw - m, 15, { align: "right" });
-
-          // Date range sub-text
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8.5);
-          doc.setTextColor(210, 210, 255);
-          doc.text(formatDateShort(start) + "  to  " + formatDateShort(end), pw - m, 22, { align: "right" });
+          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+          doc.text("OFFICIAL FINANCIAL ACCOUNT STATEMENT", m, y + 7);
 
-          // Accent Gold Line
-          doc.setDrawColor(250, 204, 21);
-          doc.setLineWidth(0.6);
-          doc.line(m, 37, m + 45, 37);
-
-          var y = 44;
-
-          // ================================================================
-          //  REPORT META INFO LINE
-          // ================================================================
-          doc.setFontSize(7.5);
-          doc.setTextColor(gray600[0], gray600[1], gray600[2]);
-          doc.setFont("helvetica", "normal");
-          doc.text("Account Holder: " + accountHolder, m, y);
-          doc.text("Report ID: CB-" + filterYear + "-" + String(adjustedFilterMonth + 1).padStart(2, "0"), pw / 2, y, { align: "center" });
-          doc.text("Generated: " + now.toLocaleString("en-IN"), pw - m, y, { align: "right" });
-          y += 8;
-
-          // ================================================================
-          //  FINANCIAL OVERVIEW - Cards
-          // ================================================================
-          doc.setFontSize(10);
-          doc.setTextColor(dark[0], dark[1], dark[2]);
+          // Right aligned Header Details
           doc.setFont("helvetica", "bold");
-          doc.text("Financial Overview", m, y);
-          y += 2;
+          doc.setFontSize(11);
+          doc.setTextColor(black[0], black[1], black[2]);
+          doc.text("STATEMENT PERIOD", pw - m, y + 2, { align: "right" });
 
-          doc.setDrawColor(indigo[0], indigo[1], indigo[2]);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+          doc.text(`${reportMonth.toUpperCase()} ${filterYear} (${formatDateShort(start)} – ${formatDateShort(end)})`, pw - m, y + 7, { align: "right" });
+
+          y += 12;
+
+          // Double Horizontal Divider Rule (Corporate standard)
+          doc.setDrawColor(black[0], black[1], black[2]);
           doc.setLineWidth(0.8);
-          doc.line(m, y, m + 32, y);
-          doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
+          doc.line(m, y, pw - m, y);
           doc.setLineWidth(0.2);
-          doc.line(m + 32, y, pw - m, y);
+          doc.line(m, y + 1.2, pw - m, y + 1.2);
+
           y += 6;
 
-          var cw = (contentW - 8) / 3;
-          var ch = 30;
+          // ================================================================
+          //  ACCOUNT & STATEMENT INFORMATION BOX
+          // ================================================================
+          var boxH = 18;
+          doc.setFillColor(white[0], white[1], white[2]);
+          doc.rect(m, y, contentW, boxH, 'F');
+          doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+          doc.setLineWidth(0.3);
+          doc.rect(m, y, contentW, boxH, 'S');
 
-          function drawCard(x, yy, w, h, accentColor, bgColor, label, value, valueColor) {
-            doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-            doc.rect(x, yy, w, h, 'F');
-            doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
-            doc.setLineWidth(0.2);
-            doc.rect(x, yy, w, h, 'S');
-            doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-            doc.rect(x, yy, 2.5, h, 'F');
-            doc.setFontSize(6.5);
-            doc.setTextColor(gray600[0], gray600[1], gray600[2]);
-            doc.setFont("helvetica", "bold");
-            doc.text(label, x + 8, yy + 10);
-            doc.setFontSize(13);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(valueColor[0], valueColor[1], valueColor[2]);
-            doc.text(value, x + 8, yy + 22);
-          }
+          doc.setFontSize(8);
+          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
 
-          drawCard(m, y, cw, ch, green, greenBg, "TOTAL INCOME", "Rs. " + totalIncome.toLocaleString("en-IN", {minimumFractionDigits: 2}), green);
-          drawCard(m + cw + 4, y, cw, ch, red, redBg, "TOTAL EXPENSES", "Rs. " + totalExpense.toLocaleString("en-IN", {minimumFractionDigits: 2}), red);
-          var netColor = net >= 0 ? green : red;
-          var netBg = net >= 0 ? greenBg : redBg;
-          drawCard(m + (cw + 4) * 2, y, cw, ch, indigo, indigoBg, "NET BALANCE", "Rs. " + net.toLocaleString("en-IN", {minimumFractionDigits: 2}), netColor);
-
-          y += ch + 5;
-
-          // Key Stats Row
-          doc.setFillColor(gray100[0], gray100[1], gray100[2]);
-          doc.rect(m, y, contentW, 10, 'F');
-          doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
-          doc.setLineWidth(0.15);
-          doc.rect(m, y, contentW, 10, 'S');
-          doc.setFontSize(7.5);
+          // Left Column
+          doc.setFont("helvetica", "bold");
+          doc.text("Account Holder:", m + 4, y + 6);
           doc.setFont("helvetica", "normal");
-          doc.setTextColor(gray600[0], gray600[1], gray600[2]);
-          var daysInPeriod = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-          var avgDaily = daysInPeriod > 0 ? totalExpense / daysInPeriod : 0;
-          doc.text("Total Transactions: " + txCount, m + 6, y + 6.5);
-          doc.text("Avg. Daily Spending: Rs. " + avgDaily.toLocaleString("en-IN", {minimumFractionDigits: 2}), m + 65, y + 6.5);
-          doc.text("Savings Rate: " + (totalIncome > 0 ? ((net / totalIncome) * 100).toFixed(1) : "0.0") + "%", m + 140, y + 6.5);
-          y += 16;
+          doc.text(accountHolder + (userEmail !== "N/A" && userEmail !== accountHolder ? ` (${userEmail})` : ""), m + 32, y + 6);
+
+          doc.setFont("helvetica", "bold");
+          doc.text("Statement Date:", m + 4, y + 13);
+          doc.setFont("helvetica", "normal");
+          doc.text(now.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" }) + " " + now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }), m + 32, y + 13);
+
+          // Right Column
+          doc.setFont("helvetica", "bold");
+          doc.text("Statement Ref ID:", m + 110, y + 6);
+          doc.setFont("helvetica", "normal");
+          doc.text(`CB-STMT-${filterYear}-${String(adjustedFilterMonth + 1).padStart(2, "0")}`, m + 140, y + 6);
+
+          doc.setFont("helvetica", "bold");
+          doc.text("Currency:", m + 110, y + 13);
+          doc.setFont("helvetica", "normal");
+          doc.text("INR (Indian Rupee - Rs.)", m + 140, y + 13);
+
+          y += boxH + 8;
 
           // ================================================================
-          //  SPENDING BY CATEGORY
+          //  1. FINANCIAL ACCOUNT SUMMARY
+          // ================================================================
+          doc.setFontSize(9.5);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(black[0], black[1], black[2]);
+          doc.text("1. FINANCIAL ACCOUNT SUMMARY", m, y);
+          y += 2;
+          doc.setDrawColor(black[0], black[1], black[2]);
+          doc.setLineWidth(0.4);
+          doc.line(m, y, pw - m, y);
+          y += 4;
+
+          var summaryData = [
+            ["Total Credits (Income)", "Rs. " + totalIncome.toLocaleString("en-IN", {minimumFractionDigits: 2})],
+            ["Total Debits (Expenses)", "Rs. " + totalExpense.toLocaleString("en-IN", {minimumFractionDigits: 2})],
+            ["Net Statement Balance", "Rs. " + net.toLocaleString("en-IN", {minimumFractionDigits: 2})],
+            ["Total Recorded Transactions", String(txCount)],
+            ["Average Daily Outflow", "Rs. " + (Math.ceil((end - start) / (1000 * 60 * 60 * 24)) > 0 ? (totalExpense / (Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1)).toLocaleString("en-IN", {minimumFractionDigits: 2}) : "0.00")]
+          ];
+
+          doc.autoTable({
+            startY: y,
+            head: [["Financial Summary Metric", "Amount / Value"]],
+            body: summaryData,
+            margin: { left: m, right: m },
+            theme: "grid",
+            styles: {
+              font: "helvetica",
+              fontSize: 8,
+              textColor: black,
+              lineColor: lightBorder,
+              lineWidth: 0.2,
+              cellPadding: 3.5,
+            },
+            headStyles: {
+              fillColor: headerBg,
+              textColor: black,
+              fontStyle: "bold",
+              fontSize: 8,
+              lineColor: black,
+              lineWidth: 0.3,
+            },
+            columnStyles: {
+              0: { cellWidth: 'auto', fontStyle: "normal" },
+              1: { cellWidth: 60, halign: "right", fontStyle: "bold" }
+            }
+          });
+
+          y = doc.lastAutoTable.finalY + 8;
+
+          // ================================================================
+          //  2. CATEGORY BREAKDOWN SUMMARY
           // ================================================================
           var catEntries = Object.entries(categoryTotals).sort(function(a, b) { return b[1] - a[1]; });
 
           if (catEntries.length > 0) {
-            doc.setFontSize(10);
-            doc.setTextColor(dark[0], dark[1], dark[2]);
+            doc.setFontSize(9.5);
             doc.setFont("helvetica", "bold");
-            doc.text("Spending Breakdown by Category", m, y);
+            doc.setTextColor(black[0], black[1], black[2]);
+            doc.text("2. EXPENDITURE BY CATEGORY", m, y);
             y += 2;
-            doc.setDrawColor(indigo[0], indigo[1], indigo[2]);
-            doc.setLineWidth(0.8);
-            doc.line(m, y, m + 45, y);
-            doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
-            doc.setLineWidth(0.2);
-            doc.line(m + 45, y, pw - m, y);
-            y += 6;
+            doc.setDrawColor(black[0], black[1], black[2]);
+            doc.setLineWidth(0.4);
+            doc.line(m, y, pw - m, y);
+            y += 4;
 
-            var maxCatVal = catEntries[0][1];
-            var barMaxW = contentW - 75;
-
-            catEntries.forEach(function(entry, i) {
-              var catName = entry[0];
-              var catVal = entry[1];
-              var pct = totalExpense > 0 ? (catVal / totalExpense * 100).toFixed(1) : "0.0";
-              var barW = maxCatVal > 0 ? (catVal / maxCatVal) * barMaxW : 0;
-              var col = catColors[i % catColors.length];
-
-              doc.setFontSize(7.5);
-              doc.setFont("helvetica", "normal");
-              doc.setTextColor(dark[0], dark[1], dark[2]);
-              doc.text(catName, m, y + 4);
-
-              doc.setFillColor(gray100[0], gray100[1], gray100[2]);
-              doc.rect(m + 32, y, barMaxW, 5, 'F');
-
-              doc.setFillColor(col[0], col[1], col[2]);
-              doc.rect(m + 32, y, barW, 5, 'F');
-
-              doc.setFontSize(7);
-              doc.setFont("helvetica", "bold");
-              doc.setTextColor(gray600[0], gray600[1], gray600[2]);
-              doc.text("Rs. " + catVal.toLocaleString("en-IN", {minimumFractionDigits: 2}) + "  (" + pct + "%)", pw - m, y + 4, { align: "right" });
-
-              y += 9;
+            var catTableData = catEntries.map(function(entry) {
+              var cat = entry[0];
+              var val = entry[1];
+              var cnt = categoryCounts[cat] || 0;
+              var pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) + "%" : "0.0%";
+              return [
+                cat,
+                String(cnt),
+                pct,
+                "Rs. " + val.toLocaleString("en-IN", {minimumFractionDigits: 2})
+              ];
             });
 
-            y += 4;
+            doc.autoTable({
+              startY: y,
+              head: [["Category Name", "No. of Txns", "% of Total Outflow", "Total Expenditure"]],
+              body: catTableData,
+              margin: { left: m, right: m },
+              theme: "grid",
+              styles: {
+                font: "helvetica",
+                fontSize: 8,
+                textColor: black,
+                lineColor: lightBorder,
+                lineWidth: 0.2,
+                cellPadding: 3,
+              },
+              headStyles: {
+                fillColor: headerBg,
+                textColor: black,
+                fontStyle: "bold",
+                fontSize: 8,
+                lineColor: black,
+                lineWidth: 0.3,
+              },
+              columnStyles: {
+                0: { cellWidth: 'auto' },
+                1: { cellWidth: 30, halign: "center" },
+                2: { cellWidth: 35, halign: "center" },
+                3: { cellWidth: 50, halign: "right", fontStyle: "bold" }
+              }
+            });
+
+            y = doc.lastAutoTable.finalY + 8;
           }
 
           // ================================================================
-          //  TRANSACTIONS TABLE
+          //  3. ITEMIZED TRANSACTION LEDGER
           // ================================================================
-          doc.setFontSize(10);
-          doc.setTextColor(dark[0], dark[1], dark[2]);
+          if (y + 30 > ph - 25) {
+            doc.addPage();
+            y = m;
+          }
+
+          doc.setFontSize(9.5);
           doc.setFont("helvetica", "bold");
-          doc.text("Itemized Transaction Record", m, y);
+          doc.setTextColor(black[0], black[1], black[2]);
+          doc.text("3. ITEMIZED TRANSACTION LEDGER", m, y);
           y += 2;
-          doc.setDrawColor(indigo[0], indigo[1], indigo[2]);
-          doc.setLineWidth(0.8);
-          doc.line(m, y, m + 40, y);
-          doc.setDrawColor(gray300[0], gray300[1], gray300[2]);
-          doc.setLineWidth(0.2);
-          doc.line(m + 40, y, pw - m, y);
-          y += 5;
+          doc.setDrawColor(black[0], black[1], black[2]);
+          doc.setLineWidth(0.4);
+          doc.line(m, y, pw - m, y);
+          y += 4;
 
           if (txCount === 0) {
-            doc.setFontSize(9.5);
-            doc.setTextColor(gray400[0], gray400[1], gray400[2]);
-            doc.text("No transactions recorded for this selected statement period.", pw / 2, y + 15, { align: "center" });
+            doc.setFontSize(8.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+            doc.text("No transactions recorded during this statement period.", m, y + 6);
           } else {
-            var tableData = periodTx.map(function(tx, idx) {
+            var ledgerData = periodTx.map(function(tx, idx) {
               var txDate = new Date(tx.date);
               var dateFmt = txDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
               var timeFmt = txDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
@@ -678,115 +702,104 @@
                 tx.name || "-",
                 tx.thingType || tx.category || "-",
                 isExp ? "DEBIT" : "CREDIT",
-                (isExp ? "- " : "+ ") + "Rs. " + Math.abs(tx.amount).toLocaleString("en-IN", {minimumFractionDigits: 2})
+                (isExp ? "-" : "+") + " Rs. " + Math.abs(tx.amount).toLocaleString("en-IN", {minimumFractionDigits: 2})
               ];
             });
 
             doc.autoTable({
               startY: y,
-              head: [["#", "Date", "Time", "Description / Merchant", "Category", "Type", "Amount"]],
-              body: tableData,
-              margin: { left: m, right: m, top: 20, bottom: 20 },
+              head: [["S.No", "Date", "Time", "Particulars / Description", "Category", "Type", "Amount (INR)"]],
+              body: ledgerData,
+              margin: { left: m, right: m, top: 18, bottom: 20 },
               theme: "grid",
               styles: {
                 font: "helvetica",
                 fontSize: 7.5,
-                cellPadding: { top: 3.5, right: 3, bottom: 3.5, left: 3 },
-                textColor: [50, 50, 60],
-                lineColor: [226, 232, 240],
+                textColor: black,
+                lineColor: lightBorder,
                 lineWidth: 0.15,
+                cellPadding: 3,
                 overflow: 'linebreak',
               },
               headStyles: {
-                fillColor: [indigo[0], indigo[1], indigo[2]],
-                textColor: white,
+                fillColor: headerBg,
+                textColor: black,
                 fontStyle: "bold",
                 fontSize: 7.5,
-                cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+                lineColor: black,
+                lineWidth: 0.3,
                 halign: "center",
               },
-              alternateRowStyles: {
-                fillColor: [249, 250, 251],
-              },
-              bodyStyles: {
-                fillColor: white,
-              },
               columnStyles: {
-                0: { cellWidth: 10, halign: "center", fontStyle: "bold", textColor: gray400 },
+                0: { cellWidth: 10, halign: "center", fontStyle: "bold" },
                 1: { cellWidth: 24 },
                 2: { cellWidth: 20 },
-                3: { cellWidth: 'auto', fontStyle: "normal" },
+                3: { cellWidth: 'auto' },
                 4: { cellWidth: 24 },
-                5: { cellWidth: 18, halign: "center", fontSize: 6.5, fontStyle: "bold" },
-                6: { cellWidth: 34, halign: "right", fontStyle: "bold" },
-              },
-              didParseCell: function(data) {
-                if (data.section === 'body') {
-                  if (data.column.index === 5) {
-                    if (data.cell.raw === 'DEBIT') {
-                      data.cell.styles.textColor = red;
-                      data.cell.styles.fillColor = [254, 242, 242];
-                    } else {
-                      data.cell.styles.textColor = green;
-                      data.cell.styles.fillColor = [236, 253, 245];
-                    }
-                  }
-                  if (data.column.index === 6) {
-                    var ri = data.row.index;
-                    if (periodTx[ri] && periodTx[ri].amount < 0) {
-                      data.cell.styles.textColor = red;
-                    } else {
-                      data.cell.styles.textColor = green;
-                    }
-                  }
-                }
+                5: { cellWidth: 18, halign: "center", fontStyle: "bold" },
+                6: { cellWidth: 36, halign: "right", fontStyle: "bold" }
               }
             });
 
-            // ── Grand Total Banner below table ──
+            // Accounting Grand Totals Row
             var finalY = doc.lastAutoTable.finalY + 4;
-            if (finalY + 14 > ph - 20) {
+            if (finalY + 16 > ph - 20) {
               doc.addPage();
               finalY = 20;
             }
-            doc.setFillColor(indigo[0], indigo[1], indigo[2]);
-            doc.rect(m, finalY, contentW, 12, 'F');
+
+            // Top single line
+            doc.setDrawColor(black[0], black[1], black[2]);
+            doc.setLineWidth(0.4);
+            doc.line(m, finalY, pw - m, finalY);
+
             doc.setFont("helvetica", "bold");
             doc.setFontSize(8);
-            doc.setTextColor(255, 255, 255);
-            doc.text("TOTAL INCOME: Rs. " + totalIncome.toLocaleString("en-IN", {minimumFractionDigits: 2}), m + 6, finalY + 7.5);
-            doc.text("TOTAL EXPENSE: Rs. " + totalExpense.toLocaleString("en-IN", {minimumFractionDigits: 2}), m + 75, finalY + 7.5);
-            var netLabel = "NET: Rs. " + net.toLocaleString("en-IN", {minimumFractionDigits: 2});
-            doc.text(netLabel, pw - m - 6, finalY + 7.5, { align: "right" });
+            doc.setTextColor(black[0], black[1], black[2]);
+            doc.text("STATEMENT TOTALS", m + 2, finalY + 5);
+            doc.text("TOTAL CREDITS: Rs. " + totalIncome.toLocaleString("en-IN", {minimumFractionDigits: 2}), m + 45, finalY + 5);
+            doc.text("TOTAL DEBITS: Rs. " + totalExpense.toLocaleString("en-IN", {minimumFractionDigits: 2}), m + 105, finalY + 5);
+            doc.text("NET: Rs. " + net.toLocaleString("en-IN", {minimumFractionDigits: 2}), pw - m - 2, finalY + 5, { align: "right" });
+
+            // Accounting double line underneath
+            doc.setLineWidth(0.4);
+            doc.line(m, finalY + 8, pw - m, finalY + 8);
+            doc.setLineWidth(0.2);
+            doc.line(m, finalY + 9.2, pw - m, finalY + 9.2);
           }
 
-          // ── Stamp Footer on all pages ──
+          // ================================================================
+          //  PAGE FOOTERS (Clean Monochrome Stamping)
+          // ================================================================
           var totalPages = doc.internal.getNumberOfPages();
           for (var p = 1; p <= totalPages; p++) {
             doc.setPage(p);
-            doc.setDrawColor(indigo[0], indigo[1], indigo[2]);
+
+            // Footer line
+            doc.setDrawColor(black[0], black[1], black[2]);
             doc.setLineWidth(0.4);
             doc.line(m, ph - 14, pw - m, ph - 14);
 
-            doc.setFontSize(6.5);
+            // Footer text
+            doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(gray400[0], gray400[1], gray400[2]);
-            doc.text("ClearBudget  |  Personal Finance Statement  |  " + reportMonth + " " + filterYear, m, ph - 9);
-            doc.text("Confidential", pw / 2, ph - 9, { align: "center" });
+            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+            doc.text("ClearBudget Official Financial Statement  •  " + reportMonth + " " + filterYear + "  •  Confidential", m, ph - 8);
+            
             doc.setFont("helvetica", "bold");
-            doc.text("Page " + p + " of " + totalPages, pw - m, ph - 9, { align: "right" });
+            doc.text("Page " + p + " of " + totalPages, pw - m, ph - 8, { align: "right" });
           }
 
-          doc.save("ClearBudget_" + reportMonth + "_" + filterYear + ".pdf");
+          doc.save(`ClearBudget_Statement_${reportMonth}_${filterYear}.pdf`);
 
           if (window.Toast) {
-            Toast.success("PDF report downloaded successfully!");
+            Toast.success("Official financial statement generated successfully!");
           }
 
         } catch (err) {
           console.error("PDF generation error:", err);
           if (window.Toast) {
-            Toast.error("Failed to generate PDF report. Please try again.");
+            Toast.error("Failed to generate statement. Please try again.");
           }
         }
 
