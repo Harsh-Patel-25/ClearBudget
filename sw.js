@@ -1,5 +1,6 @@
-const CACHE_NAME = 'clearbudget-v3';
+const CACHE_NAME = 'clearbudget-v5';
 const ASSETS = [
+  '/',
   'index.html',
   'add.html',
   'friend.html',
@@ -37,14 +38,27 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Cache-first for local assets, network-first for API calls
-  if (e.request.url.includes('/api/')) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
-    );
-  } else {
-    e.respondWith(
-      caches.match(e.request).then((res) => res || fetch(e.request))
-    );
-  }
+  // Ignore non-GET requests
+  if (e.request.method !== 'GET') return;
+
+  // Network-First strategy for all GET requests (API calls & static assets)
+  // Ensures mobile & desktop browsers ALWAYS get the latest hosted version when online
+  e.respondWith(
+    fetch(e.request)
+      .then((networkResponse) => {
+        // Clone and cache the fresh network response if valid
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // Fallback to cache if network is unavailable (offline mode)
+        return caches.match(e.request);
+      })
+  );
 });
+
