@@ -446,6 +446,7 @@
             if (tx.amount >= 0) totalIncome += tx.amount;
             else totalExpense += Math.abs(tx.amount);
           });
+          const net = totalIncome - totalExpense;
 
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF('p', 'mm', 'a4');
@@ -453,103 +454,124 @@
           const pageH = doc.internal.pageSize.getHeight();
           const margin = 15;
 
-          // ── Color Palette ──
-          const primaryR = 99, primaryG = 102, primaryB = 241;
-          const darkBg = [15, 17, 26];
-          const cardBg = [22, 27, 38];
+          // ── Colors ──
+          const primary = [99, 102, 241];
+          const green = [16, 185, 129];
+          const red = [220, 50, 70];
+          const darkText = [30, 30, 40];
+          const grayText = [120, 120, 135];
+          const lightGray = [245, 245, 250];
 
-          // ── Page Background ──
-          doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
-          doc.rect(0, 0, pageW, pageH, 'F');
+          // ═══════════════════════════════════════
+          // HEADER BAR
+          // ═══════════════════════════════════════
+          doc.setFillColor(primary[0], primary[1], primary[2]);
+          doc.rect(0, 0, pageW, 36, 'F');
 
-          // ── Header Gradient Bar ──
-          doc.setFillColor(primaryR, primaryG, primaryB);
-          doc.rect(0, 0, pageW, 38, 'F');
-          // Subtle overlay
-          doc.setFillColor(79, 70, 229);
-          doc.rect(0, 28, pageW, 10, 'F');
-
-          // ── Title ──
+          // Title
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(20);
+          doc.setFontSize(18);
           doc.setTextColor(255, 255, 255);
-          doc.text("ClearBudget", margin, 16);
+          doc.text("ClearBudget", margin, 14);
 
-          doc.setFontSize(10);
+          // Subtitle
+          doc.setFontSize(9);
           doc.setFont("helvetica", "normal");
-          doc.setTextColor(220, 220, 255);
-          doc.text("Monthly Transaction Report", margin, 24);
+          doc.setTextColor(210, 210, 255);
+          doc.text("Monthly Transaction Report", margin, 22);
 
-          // ── Date Range on header ──
-          const dateStr = `${formatDateShort(start)}  to  ${formatDateShort(end)}`;
-          doc.setFontSize(10);
+          // Date range (right side)
+          const dateStr = formatDateShort(start) + "  to  " + formatDateShort(end);
+          doc.setFontSize(9);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(255, 255, 255);
-          doc.text(dateStr, pageW - margin, 16, { align: "right" });
+          doc.text(dateStr, pageW - margin, 14, { align: "right" });
 
+          // Generated date
           doc.setFont("helvetica", "normal");
-          doc.setFontSize(8);
-          doc.setTextColor(200, 200, 255);
-          const genDate = `Generated: ${new Date().toLocaleString("en-IN")}`;
-          doc.text(genDate, pageW - margin, 24, { align: "right" });
+          doc.setFontSize(7.5);
+          doc.setTextColor(200, 200, 240);
+          doc.text("Generated: " + new Date().toLocaleString("en-IN"), pageW - margin, 22, { align: "right" });
 
-          let y = 48;
+          let y = 46;
 
-          // ── Summary Cards ──
-          const cardW = (pageW - margin * 2 - 10) / 3;
-          const cardH = 28;
+          // ═══════════════════════════════════════
+          // SUMMARY SECTION
+          // ═══════════════════════════════════════
+          const cardW = (pageW - margin * 2 - 12) / 3;
+          const cardH = 26;
 
           // Income card
-          doc.setFillColor(16, 45, 35);
+          doc.setFillColor(235, 252, 245);
           doc.rect(margin, y, cardW, cardH, 'F');
-          doc.setFontSize(8);
-          doc.setTextColor(16, 185, 129);
+          doc.setDrawColor(16, 185, 129);
+          doc.setLineWidth(0.5);
+          doc.rect(margin, y, cardW, cardH, 'S');
+          doc.setFontSize(7.5);
+          doc.setTextColor(grayText[0], grayText[1], grayText[2]);
           doc.setFont("helvetica", "normal");
-          doc.text("Total Income", margin + 6, y + 10);
-          doc.setFontSize(14);
+          doc.text("TOTAL INCOME", margin + 5, y + 9);
+          doc.setFontSize(13);
           doc.setFont("helvetica", "bold");
-          doc.text(`Rs.${totalIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, margin + 6, y + 21);
+          doc.setTextColor(green[0], green[1], green[2]);
+          doc.text("Rs. " + totalIncome.toLocaleString('en-IN', {minimumFractionDigits: 2}), margin + 5, y + 20);
 
           // Expense card
-          const card2X = margin + cardW + 5;
-          doc.setFillColor(43, 18, 28);
+          const card2X = margin + cardW + 6;
+          doc.setFillColor(255, 240, 242);
           doc.rect(card2X, y, cardW, cardH, 'F');
-          doc.setFontSize(8);
-          doc.setTextColor(244, 63, 94);
+          doc.setDrawColor(220, 50, 70);
+          doc.rect(card2X, y, cardW, cardH, 'S');
+          doc.setFontSize(7.5);
+          doc.setTextColor(grayText[0], grayText[1], grayText[2]);
           doc.setFont("helvetica", "normal");
-          doc.text("Total Expenses", card2X + 6, y + 10);
-          doc.setFontSize(14);
+          doc.text("TOTAL EXPENSES", card2X + 5, y + 9);
+          doc.setFontSize(13);
           doc.setFont("helvetica", "bold");
-          doc.text(`Rs.${totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card2X + 6, y + 21);
+          doc.setTextColor(red[0], red[1], red[2]);
+          doc.text("Rs. " + totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2}), card2X + 5, y + 20);
 
           // Net card
-          const card3X = card2X + cardW + 5;
-          const net = totalIncome - totalExpense;
-          doc.setFillColor(20, 25, 50);
+          const card3X = card2X + cardW + 6;
+          doc.setFillColor(238, 238, 255);
           doc.rect(card3X, y, cardW, cardH, 'F');
-          doc.setFontSize(8);
-          doc.setTextColor(primaryR, primaryG, primaryB);
+          doc.setDrawColor(primary[0], primary[1], primary[2]);
+          doc.rect(card3X, y, cardW, cardH, 'S');
+          doc.setFontSize(7.5);
+          doc.setTextColor(grayText[0], grayText[1], grayText[2]);
           doc.setFont("helvetica", "normal");
-          doc.text("Net Balance", card3X + 6, y + 10);
-          doc.setFontSize(14);
+          doc.text("NET BALANCE", card3X + 5, y + 9);
+          doc.setFontSize(13);
           doc.setFont("helvetica", "bold");
-          if (net >= 0) doc.setTextColor(16, 185, 129);
-          else doc.setTextColor(244, 63, 94);
-          doc.text(`Rs.${net.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card3X + 6, y + 21);
+          if (net >= 0) doc.setTextColor(green[0], green[1], green[2]);
+          else doc.setTextColor(red[0], red[1], red[2]);
+          doc.text("Rs. " + net.toLocaleString('en-IN', {minimumFractionDigits: 2}), card3X + 5, y + 20);
 
           y += cardH + 10;
 
+          // ── Thin divider ──
+          doc.setDrawColor(200, 200, 210);
+          doc.setLineWidth(0.3);
+          doc.line(margin, y, pageW - margin, y);
+          y += 6;
+
           // ── Transaction Count ──
           doc.setFontSize(9);
-          doc.setTextColor(148, 163, 184);
+          doc.setTextColor(darkText[0], darkText[1], darkText[2]);
+          doc.setFont("helvetica", "bold");
+          doc.text("Transaction Details", margin, y);
           doc.setFont("helvetica", "normal");
-          doc.text(`Total Transactions: ${periodTx.length}`, margin, y);
-          y += 8;
+          doc.setFontSize(8);
+          doc.setTextColor(grayText[0], grayText[1], grayText[2]);
+          doc.text(periodTx.length + " transactions", pageW - margin, y, { align: "right" });
+          y += 6;
 
-          // ── Transactions Table ──
+          // ═══════════════════════════════════════
+          // TRANSACTIONS TABLE
+          // ═══════════════════════════════════════
           if (periodTx.length === 0) {
-            doc.setFontSize(12);
-            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(11);
+            doc.setTextColor(grayText[0], grayText[1], grayText[2]);
             doc.text("No transactions found for this period.", pageW / 2, y + 20, { align: "center" });
           } else {
             const tableData = periodTx.map((tx, idx) => {
@@ -572,82 +594,77 @@
                 tx.name || "-",
                 tx.thingType || tx.category || "-",
                 isExpense ? "Expense" : "Income",
-                `Rs.${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`,
+                "Rs. " + Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2}),
               ];
             });
 
             doc.autoTable({
               startY: y,
-              head: [["#", "Date", "Time", "Description", "Category", "Type", "Amount"]],
+              head: [["#", "Date", "Time", "Description", "Category", "Type", "Amount (Rs.)"]],
               body: tableData,
               margin: { left: margin, right: margin },
-              theme: "plain",
+              theme: "striped",
               styles: {
                 font: "helvetica",
                 fontSize: 8,
-                cellPadding: 3.5,
-                textColor: [220, 225, 235],
-                lineColor: [40, 48, 65],
-                lineWidth: 0.3,
+                cellPadding: 3,
+                textColor: [40, 40, 50],
+                lineColor: [220, 220, 230],
+                lineWidth: 0.2,
               },
               headStyles: {
-                fillColor: [primaryR, primaryG, primaryB],
+                fillColor: [primary[0], primary[1], primary[2]],
                 textColor: [255, 255, 255],
                 fontStyle: "bold",
-                fontSize: 8.5,
-                cellPadding: 4,
+                fontSize: 8,
+                cellPadding: 3.5,
               },
               alternateRowStyles: {
-                fillColor: [18, 22, 32],
+                fillColor: [248, 248, 255],
               },
               bodyStyles: {
-                fillColor: [22, 27, 38],
+                fillColor: [255, 255, 255],
               },
               columnStyles: {
                 0: { cellWidth: 10, halign: "center" },
-                1: { cellWidth: 28 },
+                1: { cellWidth: 26 },
                 2: { cellWidth: 22 },
                 3: { cellWidth: 'auto' },
-                4: { cellWidth: 25 },
+                4: { cellWidth: 24 },
                 5: { cellWidth: 20, halign: "center" },
-                6: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+                6: { cellWidth: 30, halign: "right", fontStyle: "bold" },
               },
               didParseCell: function (data) {
                 // Color the Type column
                 if (data.section === 'body' && data.column.index === 5) {
                   if (data.cell.raw === 'Expense') {
-                    data.cell.styles.textColor = [244, 63, 94];
+                    data.cell.styles.textColor = [220, 50, 70];
                   } else {
-                    data.cell.styles.textColor = [16, 185, 129];
+                    data.cell.styles.textColor = [16, 150, 110];
                   }
                 }
                 // Color the Amount column
                 if (data.section === 'body' && data.column.index === 6) {
                   const rowIdx = data.row.index;
                   if (periodTx[rowIdx] && periodTx[rowIdx].amount < 0) {
-                    data.cell.styles.textColor = [244, 63, 94];
+                    data.cell.styles.textColor = [220, 50, 70];
                   } else {
-                    data.cell.styles.textColor = [16, 185, 129];
+                    data.cell.styles.textColor = [16, 150, 110];
                   }
                 }
               },
               didDrawPage: function (data) {
-                // Draw background on new pages
-                doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
-                doc.rect(0, 0, pageW, pageH, 'F');
-
-                // Redraw table content on the page (autoTable handles this)
-                // Footer
+                // Footer on every page
+                const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
                 doc.setFontSize(7);
-                doc.setTextColor(100, 116, 139);
+                doc.setTextColor(160, 160, 170);
                 doc.text(
-                  "ClearBudget - Generated automatically",
-                  pageW / 2,
-                  pageH - 8,
-                  { align: "center" }
+                  "ClearBudget - Monthly Transaction Report",
+                  margin,
+                  pageH - 8
                 );
                 doc.text(
-                  `Page ${doc.internal.getNumberOfPages()}`,
+                  "Page " + pageNum,
                   pageW - margin,
                   pageH - 8,
                   { align: "right" }
@@ -656,20 +673,10 @@
             });
           }
 
-          // ── Footer on first page ──
-          doc.setFontSize(7);
-          doc.setTextColor(100, 116, 139);
-          doc.text(
-            "ClearBudget - Generated automatically",
-            pageW / 2,
-            pageH - 8,
-            { align: "center" }
-          );
-
           // ── Save ──
           const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
           const reportMonth = monthNames[adjustedFilterMonth];
-          doc.save(`ClearBudget_Report_${reportMonth}_${filterYear}.pdf`);
+          doc.save("ClearBudget_Report_" + reportMonth + "_" + filterYear + ".pdf");
 
           if (window.Toast) {
             Toast.success("PDF report downloaded successfully!");
@@ -683,7 +690,7 @@
         }
 
         btn.classList.remove("generating");
-        btn.innerHTML = `<span class="btn-icon-wrap"><i class="fas fa-file-pdf"></i></span> Download PDF Report`;
+        btn.innerHTML = '<span class="btn-icon-wrap"><i class="fas fa-file-pdf"></i></span> Download PDF Report';
       }
 
       // Initial render
