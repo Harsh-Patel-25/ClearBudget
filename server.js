@@ -40,7 +40,7 @@ let isMongoConnected = false;
 const connectDB = async () => {
   let mongoURI = process.env.MONGODB_URI;
   if (!mongoURI || mongoURI.trim() === "") {
-    console.log("⚠️ MONGODB_URI is not set in .env file. Running with fast local store.");
+    console.log("[DB] MONGODB_URI not provided. Operating in local storage fallback mode.");
     return;
   }
 
@@ -54,12 +54,12 @@ const connectDB = async () => {
       socketTimeoutMS: 10000,
     });
     isMongoConnected = true;
-    console.log("⚡ Connected to MongoDB Atlas successfully!");
+    console.log("[DB] Connected to MongoDB Atlas successfully.");
   } catch (error) {
     isMongoConnected = false;
     await mongoose.disconnect().catch(() => {});
-    console.error("⚠️ MongoDB Atlas connection error:", error.message);
-    console.log("⚡ ClearBudget is running with fast local memory store fallback.");
+    console.error("[DB] MongoDB Atlas connection warning:", error.message);
+    console.log("[DB] Operating in local memory fallback mode.");
   }
 };
 
@@ -772,7 +772,7 @@ app.get("/api/admin/export", adminAuthMiddleware, async (req, res) => {
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`🚀 ClearBudget Server listening at http://localhost:${PORT}`);
+    console.log(`[Server] ClearBudget backend listening at http://localhost:${PORT}`);
   });
 }
 

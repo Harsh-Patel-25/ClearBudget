@@ -308,8 +308,36 @@ const Auth = {
 // Protect page immediately
 Auth.requireAuth();
 
+// Global Smooth Page Navigation Handler
 document.addEventListener("DOMContentLoaded", () => {
   Auth.renderUserHeader();
+
+  // Intercept internal link clicks for smooth fade transitions
+  document.body.addEventListener("click", (e) => {
+    const anchor = e.target.closest("a");
+    if (!anchor) return;
+    
+    const href = anchor.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:") || anchor.getAttribute("target") === "_blank") {
+      return;
+    }
+
+    // Check if it's an internal html link or page
+    if (href.endsWith(".html") || href.includes(".html?") || (!href.includes("://") && !href.startsWith("//"))) {
+      e.preventDefault();
+      const targetUrl = anchor.href;
+
+      // Don't transition if already on target URL
+      if (window.location.href === targetUrl) return;
+
+      const mainContainer = document.querySelector(".fade-in") || document.body;
+      mainContainer.classList.add("page-exit");
+
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 140);
+    }
+  });
 });
 
 window.Auth = Auth;

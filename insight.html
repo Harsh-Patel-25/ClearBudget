@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spending Insights - ClearBudget</title>
+    <link rel="icon" type="image/png" href="192.png" />
+    <link rel="apple-touch-icon" href="192.png" />
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
@@ -91,8 +93,8 @@
   <body style="padding: 0 1.2rem 85px;">
     <div style="max-width: 1000px; margin: 0 auto;" class="fade-in">
       <div style="margin-bottom: 1.5rem;">
-        <h1>Spending <span class="text-gradient">Insights</span></h1>
-        <p class="subhead">Discover where your money goes</p>
+        <h1>Analytics</h1>
+        <p class="subhead">Category breakdown and spending trends</p>
       </div>
 
       <div class="toggle-container">
@@ -233,15 +235,21 @@
             const color = colors[colorIndex++ % colors.length];
 
             const bar = document.createElement("div");
-            bar.className = "bar";
+            bar.className = "bar stagger-item";
             bar.innerHTML = `
               <div class="bar-label">${type}</div>
               <div class="bar-track">
-                <div class="bar-fill" style="width: ${percent.toFixed(1)}%; background:${color};"></div>
+                <div class="bar-fill" style="width: 0%; background:${color};" data-width="${percent.toFixed(1)}%"></div>
               </div>
               <div class="bar-amount">₹${value.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
             `;
             barChart.appendChild(bar);
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                const fill = bar.querySelector('.bar-fill');
+                if (fill) fill.style.width = `${percent.toFixed(1)}%`;
+              }, 50);
+            });
           }
         }
 

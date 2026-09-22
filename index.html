@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="icon" type="image/png" href="192.png" />
     <link rel="apple-touch-icon" href="192.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -189,8 +190,8 @@
   <body style="padding: 0 1.2rem 85px;">
     <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
       <div style="margin-bottom: 2rem;">
-        <h1>Dashboard <span class="text-gradient">Overview</span></h1>
-        <p class="subhead">Your financial summary at a glance</p>
+        <h1>Overview</h1>
+        <p class="subhead">Real-time balance, cash flow, and monthly limit</p>
       </div>
 
       <div class="cards">
@@ -299,6 +300,37 @@
       const progressText = document.getElementById("progressText");
       const percentValEl = document.getElementById("percentVal");
 
+      function animateNumber(element, target, prefix = "₹", duration = 650) {
+        if (!element) return;
+        const startTime = performance.now();
+        const startVal = 0;
+        
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease-out cubic curve
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const currentVal = startVal + (target - startVal) * easeProgress;
+          
+          element.textContent = `${prefix}${currentVal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+          
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          }
+        }
+        requestAnimationFrame(update);
+      }
+
+      function showRecentSkeleton() {
+        const list = document.getElementById("transactionList");
+        if (!list) return;
+        list.innerHTML = `
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        `;
+      }
+
       async function updateDashboard() {
         const transactions = await API.getTransactions();
         let income = 0, expenses = 0;
@@ -312,9 +344,9 @@
         const circumference = 2 * Math.PI * radius;
         const offset = circumference - (percentUsed / 100) * circumference;
 
-        incomeEl.textContent = `₹${income.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-        expensesEl.textContent = `₹${expenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-        balanceEl.textContent = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        animateNumber(incomeEl, income);
+        animateNumber(expensesEl, expenses);
+        animateNumber(balanceEl, balance);
         
         if (balance > 0) {
           balanceStatus.textContent = "Positive Balance";
@@ -346,6 +378,7 @@
       }
 
       async function renderRecentTransactions() {
+        showRecentSkeleton();
         const transactions = await API.getTransactions();
         const recentTx = [...transactions].slice(0, 4);
         const list = document.getElementById("transactionList");
@@ -356,9 +389,9 @@
           return;
         }
 
-        recentTx.forEach((tx) => {
+        recentTx.forEach((tx, idx) => {
           const div = document.createElement("div");
-          div.className = "tx-row";
+          div.className = "tx-row stagger-item";
           const isIncome = tx.amount >= 0;
           const iconName = tx.icon || (isIncome ? 'arrow-up' : 'arrow-down');
 

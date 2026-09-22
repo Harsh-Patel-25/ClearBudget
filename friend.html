@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Friends Ledger - ClearBudget</title>
+    <link rel="icon" type="image/png" href="192.png" />
+    <link rel="apple-touch-icon" href="192.png" />
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
@@ -169,8 +171,8 @@
     <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
       <div class="page-header-row">
         <div>
-          <h1>Friends <span class="text-gradient">Ledger</span></h1>
-          <p class="subhead">Track money given or taken</p>
+          <h1>Balances &amp; Splits</h1>
+          <p class="subhead">Track receivables, payables, and settlements</p>
         </div>
         <div class="header-buttons">
           <a href="done.html" class="btn-secondary">
@@ -289,7 +291,7 @@
 
       function createFriendCard(f, i) {
         const div = document.createElement("div");
-        div.className = "friend-card-glass";
+        div.className = "friend-card-glass stagger-item";
         const initials = getInitials(f.name);
         const isLeva = f.type === "leva";
         div.innerHTML = `

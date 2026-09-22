@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Transactions - ClearBudget</title>
+    <link rel="icon" type="image/png" href="192.png" />
+    <link rel="apple-touch-icon" href="192.png" />
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
@@ -343,8 +345,8 @@
     <div style="max-width: 1100px; margin: 0 auto;" class="fade-in">
       <div class="page-header">
         <div>
-          <h1>Transaction <span class="text-gradient">History</span></h1>
-          <p class="subhead">Track, filter, and edit your finances</p>
+          <h1>Transactions</h1>
+          <p class="subhead">History, filters, and calendar breakdown</p>
         </div>
         <div class="filters">
           <button id="btnFilterAll" class="active" onclick="setFilter('all', this)">All</button>
@@ -649,7 +651,7 @@
         filtered.forEach((tx) => {
           const isIncome = tx.amount >= 0;
           const item = document.createElement("div");
-          item.className = "transaction-item";
+          item.className = "transaction-item stagger-item";
 
           // Format date & time nicely
           let dateLabel = tx.date || '';
