@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
     <script src="js/auth.js"></script>
     <style>
       .toggle-container {
@@ -18,7 +20,7 @@
         padding: 4px;
         border-radius: var(--radius-md);
         border: 1px solid var(--border-color);
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
       }
 
       .toggle-btn {
@@ -38,6 +40,31 @@
         color: white;
         font-weight: 600;
         box-shadow: 0 2px 10px rgba(168, 109, 255, 0.35);
+      }
+
+      .date-range-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        padding: 0.45rem 1rem;
+        border-radius: var(--radius-sm);
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        font-weight: 500;
+        transition: var(--transition);
+      }
+
+      .date-range-badge i {
+        color: var(--primary);
+        font-size: 0.8rem;
+      }
+
+      .date-range-badge .date-text {
+        color: var(--text-main);
+        font-weight: 600;
       }
 
       .bar-container {
@@ -88,6 +115,78 @@
         gap: 1.25rem;
         margin-top: 1.5rem;
       }
+
+      /* Download PDF Button */
+      .download-section {
+        margin-top: 1.5rem;
+      }
+
+      .btn-download {
+        width: 100%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+        color: white;
+        border: none;
+        padding: 0.9rem 1.4rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-download::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(99, 102, 241, 0.5);
+      }
+
+      .btn-download:hover::before {
+        left: 100%;
+      }
+
+      .btn-download:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .btn-download.generating {
+        pointer-events: none;
+        opacity: 0.8;
+      }
+
+      .btn-download .btn-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 6px;
+        font-size: 0.85rem;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .fa-spin-custom {
+        animation: spin 1s linear infinite;
+      }
     </style>
   </head>
   <body style="padding: 0 1.2rem 85px;">
@@ -100,6 +199,14 @@
       <div class="toggle-container">
         <button class="toggle-btn active" onclick="setPeriod('this')">This Month</button>
         <button class="toggle-btn" onclick="setPeriod('last')">Last Month</button>
+      </div>
+
+      <!-- Date Range Badge -->
+      <div>
+        <div class="date-range-badge" id="dateRangeBadge">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="dateRangeText"><span class="date-text">Loading...</span></span>
+        </div>
       </div>
 
       <div class="card-glass" style="margin-bottom: 1.5rem;">
@@ -128,6 +235,14 @@
             <div style="font-size:1.6rem; font-weight:700; color:var(--text-main);" id="avgPerDay">₹0.00</div>
           </div>
         </div>
+      </div>
+
+      <!-- Download PDF Section -->
+      <div class="download-section">
+        <button class="btn-download" id="downloadPdfBtn" onclick="downloadPdfReport()">
+          <span class="btn-icon-wrap"><i class="fas fa-file-pdf"></i></span>
+          Download PDF Report
+        </button>
       </div>
     </div>
 
@@ -164,8 +279,44 @@
       const totalExpenseEl = document.getElementById("totalExpense");
       const avgPerDayEl = document.getElementById("avgPerDay");
       const periodLabel = document.getElementById("periodLabel");
+      const dateRangeText = document.getElementById("dateRangeText");
 
       let currentPeriod = "this";
+
+      // Helper: get the start and end dates for the selected period
+      function getPeriodDates() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+
+        if (currentPeriod === "this") {
+          const start = new Date(year, month, 1);
+          const end = now; // today
+          return { start, end };
+        } else {
+          // Last month
+          const lmMonth = month - 1;
+          const lmYear = lmMonth < 0 ? year - 1 : year;
+          const adjustedMonth = lmMonth < 0 ? 11 : lmMonth;
+          const start = new Date(lmYear, adjustedMonth, 1);
+          const daysInLastMonth = new Date(lmYear, adjustedMonth + 1, 0).getDate();
+          const end = new Date(lmYear, adjustedMonth, daysInLastMonth);
+          return { start, end };
+        }
+      }
+
+      function formatDateShort(date) {
+        return date.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+      }
+
+      function updateDateRange() {
+        const { start, end } = getPeriodDates();
+        dateRangeText.innerHTML = `<span class="date-text">${formatDateShort(start)}</span> &nbsp;–&nbsp; <span class="date-text">${formatDateShort(end)}</span>`;
+      }
 
       function setPeriod(period) {
         currentPeriod = period;
@@ -180,6 +331,7 @@
         periodLabel.textContent =
           period === "this" ? "This Month" : "Last Month";
 
+        updateDateRange();
         renderData();
       }
 
@@ -257,7 +409,287 @@
         avgPerDayEl.textContent = `₹${(totalExpenses / daysInMonth).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
       }
 
+      // ── PDF Download ─────────────────────────────────────────
+      async function downloadPdfReport() {
+        const btn = document.getElementById("downloadPdfBtn");
+        btn.classList.add("generating");
+        btn.innerHTML = `<span class="btn-icon-wrap"><i class="fas fa-spinner fa-spin-custom"></i></span> Generating PDF...`;
+
+        try {
+          // Fetch fresh data
+          const allTx = await API.getTransactions();
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth();
+          const { start, end } = getPeriodDates();
+
+          const filterMonth = currentPeriod === "this" ? month : month - 1;
+          const filterYear = filterMonth < 0 ? year - 1 : year;
+          const adjustedFilterMonth = filterMonth < 0 ? 11 : filterMonth;
+
+          // Filter ALL transactions for the period (both income & expense)
+          const periodTx = allTx.filter((tx) => {
+            const txDate = new Date(tx.date);
+            return (
+              txDate.getMonth() === adjustedFilterMonth &&
+              txDate.getFullYear() === filterYear
+            );
+          });
+
+          // Sort by date descending
+          periodTx.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          // Calculate totals
+          let totalIncome = 0;
+          let totalExpense = 0;
+          periodTx.forEach((tx) => {
+            if (tx.amount >= 0) totalIncome += tx.amount;
+            else totalExpense += Math.abs(tx.amount);
+          });
+
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF('p', 'mm', 'a4');
+          const pageW = doc.internal.pageSize.getWidth();
+          const pageH = doc.internal.pageSize.getHeight();
+          const margin = 15;
+
+          // ── Color Palette ──
+          const primaryR = 99, primaryG = 102, primaryB = 241;
+          const darkBg = [15, 17, 26];
+          const cardBg = [22, 27, 38];
+
+          // ── Page Background ──
+          doc.setFillColor(...darkBg);
+          doc.rect(0, 0, pageW, pageH, 'F');
+
+          // ── Header Gradient Bar ──
+          doc.setFillColor(primaryR, primaryG, primaryB);
+          doc.rect(0, 0, pageW, 38, 'F');
+          // Subtle overlay
+          doc.setFillColor(79, 70, 229);
+          doc.rect(0, 28, pageW, 10, 'F');
+
+          // ── Title ──
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(20);
+          doc.setTextColor(255, 255, 255);
+          doc.text("ClearBudget", margin, 16);
+
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(220, 220, 255);
+          doc.text("Monthly Transaction Report", margin, 24);
+
+          // ── Date Range on header ──
+          const dateStr = `${formatDateShort(start)}  –  ${formatDateShort(end)}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          doc.text(dateStr, pageW - margin, 16, { align: "right" });
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(200, 200, 255);
+          const genDate = `Generated: ${new Date().toLocaleString("en-IN")}`;
+          doc.text(genDate, pageW - margin, 24, { align: "right" });
+
+          let y = 48;
+
+          // ── Summary Cards ──
+          const cardW = (pageW - margin * 2 - 10) / 3;
+          const cardH = 28;
+
+          // Income card
+          doc.setFillColor(16, 45, 35);
+          doc.roundedRect(margin, y, cardW, cardH, 3, 3, 'F');
+          doc.setFontSize(8);
+          doc.setTextColor(16, 185, 129);
+          doc.setFont("helvetica", "normal");
+          doc.text("Total Income", margin + 6, y + 10);
+          doc.setFontSize(14);
+          doc.setFont("helvetica", "bold");
+          doc.text(`₹${totalIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, margin + 6, y + 21);
+
+          // Expense card
+          const card2X = margin + cardW + 5;
+          doc.setFillColor(43, 18, 28);
+          doc.roundedRect(card2X, y, cardW, cardH, 3, 3, 'F');
+          doc.setFontSize(8);
+          doc.setTextColor(244, 63, 94);
+          doc.setFont("helvetica", "normal");
+          doc.text("Total Expenses", card2X + 6, y + 10);
+          doc.setFontSize(14);
+          doc.setFont("helvetica", "bold");
+          doc.text(`₹${totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card2X + 6, y + 21);
+
+          // Net card
+          const card3X = card2X + cardW + 5;
+          const net = totalIncome - totalExpense;
+          doc.setFillColor(20, 25, 50);
+          doc.roundedRect(card3X, y, cardW, cardH, 3, 3, 'F');
+          doc.setFontSize(8);
+          doc.setTextColor(primaryR, primaryG, primaryB);
+          doc.setFont("helvetica", "normal");
+          doc.text("Net Balance", card3X + 6, y + 10);
+          doc.setFontSize(14);
+          doc.setFont("helvetica", "bold");
+          if (net >= 0) doc.setTextColor(16, 185, 129);
+          else doc.setTextColor(244, 63, 94);
+          doc.text(`₹${net.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, card3X + 6, y + 21);
+
+          y += cardH + 10;
+
+          // ── Transaction Count ──
+          doc.setFontSize(9);
+          doc.setTextColor(148, 163, 184);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Total Transactions: ${periodTx.length}`, margin, y);
+          y += 8;
+
+          // ── Transactions Table ──
+          if (periodTx.length === 0) {
+            doc.setFontSize(12);
+            doc.setTextColor(100, 116, 139);
+            doc.text("No transactions found for this period.", pageW / 2, y + 20, { align: "center" });
+          } else {
+            const tableData = periodTx.map((tx, idx) => {
+              const txDate = new Date(tx.date);
+              const dateFormatted = txDate.toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              });
+              const timeFormatted = txDate.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              });
+              const isExpense = tx.amount < 0;
+              return [
+                (idx + 1).toString(),
+                dateFormatted,
+                timeFormatted !== "Invalid Date" ? timeFormatted : "—",
+                tx.name || "—",
+                tx.thingType || tx.category || "—",
+                isExpense ? "Expense" : "Income",
+                `₹${Math.abs(tx.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`,
+              ];
+            });
+
+            doc.autoTable({
+              startY: y,
+              head: [["#", "Date", "Time", "Description", "Category", "Type", "Amount"]],
+              body: tableData,
+              margin: { left: margin, right: margin },
+              theme: "plain",
+              styles: {
+                font: "helvetica",
+                fontSize: 8,
+                cellPadding: 3.5,
+                textColor: [220, 225, 235],
+                lineColor: [40, 48, 65],
+                lineWidth: 0.3,
+              },
+              headStyles: {
+                fillColor: [primaryR, primaryG, primaryB],
+                textColor: [255, 255, 255],
+                fontStyle: "bold",
+                fontSize: 8.5,
+                cellPadding: 4,
+              },
+              alternateRowStyles: {
+                fillColor: [18, 22, 32],
+              },
+              bodyStyles: {
+                fillColor: [22, 27, 38],
+              },
+              columnStyles: {
+                0: { cellWidth: 10, halign: "center" },
+                1: { cellWidth: 28 },
+                2: { cellWidth: 22 },
+                3: { cellWidth: 'auto' },
+                4: { cellWidth: 25 },
+                5: { cellWidth: 20, halign: "center" },
+                6: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+              },
+              didParseCell: function (data) {
+                // Color the Type column
+                if (data.section === 'body' && data.column.index === 5) {
+                  if (data.cell.raw === 'Expense') {
+                    data.cell.styles.textColor = [244, 63, 94];
+                  } else {
+                    data.cell.styles.textColor = [16, 185, 129];
+                  }
+                }
+                // Color the Amount column
+                if (data.section === 'body' && data.column.index === 6) {
+                  const rowIdx = data.row.index;
+                  if (periodTx[rowIdx] && periodTx[rowIdx].amount < 0) {
+                    data.cell.styles.textColor = [244, 63, 94];
+                  } else {
+                    data.cell.styles.textColor = [16, 185, 129];
+                  }
+                }
+              },
+              didDrawPage: function (data) {
+                // Draw background on new pages
+                doc.setFillColor(...darkBg);
+                doc.rect(0, 0, pageW, pageH, 'F');
+
+                // Redraw table content on the page (autoTable handles this)
+                // Footer
+                doc.setFontSize(7);
+                doc.setTextColor(100, 116, 139);
+                doc.text(
+                  "ClearBudget – Generated automatically",
+                  pageW / 2,
+                  pageH - 8,
+                  { align: "center" }
+                );
+                doc.text(
+                  `Page ${doc.internal.getNumberOfPages()}`,
+                  pageW - margin,
+                  pageH - 8,
+                  { align: "right" }
+                );
+              },
+            });
+          }
+
+          // ── Footer on first page ──
+          doc.setFontSize(7);
+          doc.setTextColor(100, 116, 139);
+          doc.text(
+            "ClearBudget – Generated automatically",
+            pageW / 2,
+            pageH - 8,
+            { align: "center" }
+          );
+
+          // ── Save ──
+          const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+          const reportMonth = monthNames[adjustedFilterMonth];
+          doc.save(`ClearBudget_Report_${reportMonth}_${filterYear}.pdf`);
+
+          if (window.Toast) {
+            Toast.success("PDF report downloaded successfully!");
+          }
+
+        } catch (err) {
+          console.error("PDF generation error:", err);
+          if (window.Toast) {
+            Toast.error("Failed to generate PDF. Please try again.");
+          }
+        }
+
+        btn.classList.remove("generating");
+        btn.innerHTML = `<span class="btn-icon-wrap"><i class="fas fa-file-pdf"></i></span> Download PDF Report`;
+      }
+
+      // Initial render
+      updateDateRange();
       renderData();
     </script>
   </body>
 </html>
+
