@@ -402,19 +402,40 @@
           <h3>Edit Transaction</h3>
           <button class="btn-icon" onclick="hideEditForm()"><i class="fas fa-times"></i></button>
         </div>
-        <form id="editForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; align-items:end;">
+        <form id="editForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; align-items:end;">
           <input type="hidden" id="editId" />
           <div>
             <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Name</label>
             <input type="text" id="editName" required />
           </div>
           <div>
-            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Category / Type</label>
-            <input type="text" id="editCategory" required />
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Category</label>
+            <select id="editThingType" required>
+              <option value="Petrol">Petrol / Fuel</option>
+              <option value="Food">Food & Dining</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Travel">Travel & Transit</option>
+              <option value="Bills">Bills & Utilities</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Salary">Salary / Income</option>
+              <option value="Gifts">Gifts & Grants</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Type</label>
+            <select id="editType" required>
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
           </div>
           <div>
             <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Amount (₹)</label>
-            <input type="number" id="editAmount" step="any" required />
+            <input type="number" id="editAmount" step="any" min="0" required />
+          </div>
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.4rem;">Date</label>
+            <input type="date" id="editDate" required />
           </div>
           <div style="display:flex; gap:0.5rem;">
             <button type="submit" class="btn-primary" style="flex:1;">Save</button>
@@ -657,15 +678,25 @@
           let dateLabel = tx.date || '';
           let timeLabel = '';
           try {
-            const d = new Date(tx.date);
-            if (!isNaN(d.getTime())) {
-              dateLabel = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-              timeLabel = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const dateObj = new Date(tx.date);
+            if (!isNaN(dateObj.getTime())) {
+              dateLabel = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            }
+            if (tx.createdAt) {
+              const createdDate = new Date(tx.createdAt);
+              if (!isNaN(createdDate.getTime())) {
+                timeLabel = createdDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+              }
+            } else if (tx.date) {
+              const d = new Date(tx.date);
+              if (!isNaN(d.getTime()) && (d.getHours() !== 0 || d.getMinutes() !== 0)) {
+                timeLabel = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+              }
             }
           } catch(e) {}
 
           const amountFmt = '₹' + Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const categoryLabel = tx.category || 'General';
+          const categoryLabel = tx.thingType || tx.category || 'General';
 
           item.innerHTML = `
             <div class="tx-row-top">
@@ -759,14 +790,60 @@
       window.addEventListener("storage", () => { fetchAndRender(); });
       fetchAndRender();
 
+      const categoryIconMap = {
+        Petrol: "gas-pump",
+        Food: "utensils",
+        Shopping: "shopping-bag",
+        Travel: "car",
+        Bills: "file-invoice-dollar",
+        Entertainment: "film",
+        Salary: "wallet",
+        Gifts: "gift",
+        Other: "receipt"
+      };
+
       function showEditForm(id) {
         const tx = transactions.find((t) => String(t.id) === String(id));
         if (!tx) return;
 
         document.getElementById("editId").value = tx.id;
-        document.getElementById("editName").value = tx.name;
-        document.getElementById("editCategory").value = tx.category || (tx.amount >= 0 ? "Income" : "Expense");
+        document.getElementById("editName").value = tx.name || "";
+        
+        // Category selection (Petrol, Food, Shopping, etc.)
+        const thingTypeVal = tx.thingType || (tx.category && tx.category !== "Expense" && tx.category !== "Income" ? tx.category : "Other");
+        const thingTypeSelect = document.getElementById("editThingType");
+        if (thingTypeSelect) {
+          thingTypeSelect.value = thingTypeVal;
+        }
+
+        // Type selection (expense vs income)
+        const isIncome = tx.amount >= 0;
+        const typeSelect = document.getElementById("editType");
+        if (typeSelect) {
+          typeSelect.value = isIncome ? "income" : "expense";
+        }
+
         document.getElementById("editAmount").value = Math.abs(tx.amount);
+
+        // Format date for date input field (YYYY-MM-DD)
+        let formattedDate = "";
+        if (tx.date) {
+          const d = new Date(tx.date);
+          if (!isNaN(d.getTime())) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            formattedDate = `${yyyy}-${mm}-${dd}`;
+          }
+        }
+        if (!formattedDate) {
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          formattedDate = `${yyyy}-${mm}-${dd}`;
+        }
+        document.getElementById("editDate").value = formattedDate;
 
         const formContainer = document.getElementById("editFormContainer");
         formContainer.style.display = "block";
@@ -781,13 +858,35 @@
       document.getElementById("editForm").addEventListener("submit", async function (e) {
         e.preventDefault();
         const id = document.getElementById("editId").value;
-        const name = document.getElementById("editName").value;
-        const category = document.getElementById("editCategory").value;
+        const name = document.getElementById("editName").value.trim();
+        const thingType = document.getElementById("editThingType").value;
+        const type = document.getElementById("editType").value;
         let amount = parseFloat(document.getElementById("editAmount").value);
-        const existingTx = transactions.find(t => String(t.id) === String(id));
-        if (existingTx && existingTx.amount < 0) amount = -Math.abs(amount);
+        const dateVal = document.getElementById("editDate").value;
 
-        await API.updateTransaction(id, { name, category, amount });
+        if (!name) {
+          showToast("Please enter a transaction name.", "error");
+          return;
+        }
+        if (isNaN(amount) || amount <= 0) {
+          showToast("Please enter a valid amount.", "error");
+          return;
+        }
+
+        // Set amount sign based on income/expense type
+        amount = type === "income" ? Math.abs(amount) : -Math.abs(amount);
+        const category = type.charAt(0).toUpperCase() + type.slice(1);
+        const icon = categoryIconMap[thingType] || (type === "income" ? "wallet" : "money-bill-wave");
+
+        const existingTx = transactions.find(t => String(t.id) === String(id));
+        let date = existingTx ? existingTx.date : "";
+        if (dateVal) {
+          const parts = dateVal.split("-");
+          const dObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          date = dObj.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" });
+        }
+
+        await API.updateTransaction(id, { name, category, thingType, icon, amount, date });
         showToast("Transaction updated successfully!", "success");
         await fetchAndRender();
         hideEditForm();

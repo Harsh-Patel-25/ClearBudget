@@ -377,12 +377,12 @@ app.post("/api/transactions", authMiddleware, async (req, res) => {
 app.put("/api/transactions/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, thingType, amount, date } = req.body;
+    const { name, category, thingType, icon, amount, date } = req.body;
 
     if (isMongoConnected && mongoose.Types.ObjectId.isValid(id)) {
       const updatedTx = await Transaction.findOneAndUpdate(
         { _id: id, userId: req.userId },
-        { name, category, thingType, amount, date },
+        { name, category, thingType, icon, amount, date },
         { new: true }
       ).lean();
       if (updatedTx) {
@@ -398,6 +398,7 @@ app.put("/api/transactions/:id", authMiddleware, async (req, res) => {
         name,
         category,
         thingType: thingType || memoryTransactions[index].thingType,
+        icon: icon || memoryTransactions[index].icon,
         amount,
         date,
       };

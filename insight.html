@@ -367,7 +367,33 @@
           totalExpenses += value;
         });
 
+        const categoryIcons = {
+          "Petrol": "fas fa-gas-pump",
+          "Food": "fas fa-utensils",
+          "Shopping": "fas fa-shopping-bag",
+          "Travel": "fas fa-car",
+          "Bills": "fas fa-file-invoice-dollar",
+          "Entertainment": "fas fa-film",
+          "Salary": "fas fa-wallet",
+          "Gifts": "fas fa-gift",
+          "Other": "fas fa-receipt",
+          "Others": "fas fa-receipt"
+        };
+
+        const categoryColors = {
+          "Petrol": "#eb4d4b",
+          "Food": "#a86dff",
+          "Shopping": "#ff6b6b",
+          "Travel": "#00a8ff",
+          "Bills": "#ff9f43",
+          "Entertainment": "#f368e0",
+          "Salary": "#4cd137",
+          "Gifts": "#34e7e4",
+          "Other": "#9c88ff"
+        };
+
         const colors = [
+          "#eb4d4b",
           "#a86dff",
           "#ff6b6b",
           "#4cd137",
@@ -384,12 +410,16 @@
           let colorIndex = 0;
           for (const [type, value] of Object.entries(categoryTotals)) {
             const percent = totalExpenses > 0 ? (value / totalExpenses) * 100 : 0;
-            const color = colors[colorIndex++ % colors.length];
+            const color = categoryColors[type] || colors[colorIndex++ % colors.length];
+            const iconClass = categoryIcons[type] || "fas fa-tag";
 
             const bar = document.createElement("div");
             bar.className = "bar stagger-item";
             bar.innerHTML = `
-              <div class="bar-label">${type}</div>
+              <div class="bar-label" style="display:flex; align-items:center; gap:0.4rem;">
+                <i class="${iconClass}" style="color:${color}; width:16px; text-align:center; font-size:0.88rem;"></i>
+                <span>${type}</span>
+              </div>
               <div class="bar-track">
                 <div class="bar-fill" style="width: 0%; background:${color};" data-width="${percent.toFixed(1)}%"></div>
               </div>

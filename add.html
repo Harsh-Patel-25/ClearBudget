@@ -156,6 +156,7 @@
       <div class="form-group">
         <label for="thingType"><i class="fas fa-layer-group" style="margin-right:4px;"></i> Category / Type</label>
         <select id="thingType">
+          <option value="Petrol">Petrol / Fuel</option>
           <option value="Food">Food & Dining</option>
           <option value="Shopping">Shopping</option>
           <option value="Travel">Travel & Transit</option>
@@ -279,18 +280,31 @@
       saveBtn.disabled = true;
       saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-      const transaction = {
-        name,
-        icon: iconMap[type],
-        category: type.charAt(0).toUpperCase() + type.slice(1),
-        thingType,
-        amount: type === "income" ? amount : -amount,
-        date: new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "2-digit",
-        }),
-      };
+    const categoryIconMap = {
+      Petrol: "gas-pump",
+      Food: "utensils",
+      Shopping: "shopping-bag",
+      Travel: "car",
+      Bills: "file-invoice-dollar",
+      Entertainment: "film",
+      Salary: "wallet",
+      Gifts: "gift",
+      Other: "receipt"
+    };
+
+    const transaction = {
+      name,
+      icon: categoryIconMap[thingType] || iconMap[type],
+      category: type.charAt(0).toUpperCase() + type.slice(1),
+      thingType,
+      amount: type === "income" ? amount : -amount,
+      date: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      }),
+      createdAt: new Date().toISOString(),
+    };
 
       try {
         await API.addTransaction(transaction);
